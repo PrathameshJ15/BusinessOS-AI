@@ -1,0 +1,19 @@
+{
+  "name": "@businessos/api",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "node dist/main.js || tsc && node dist/main.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@businessos/shared": "*",
+    "@businessos/auth": "*",
+    "@businessos/ai": "*",
+    "@businessos/database": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

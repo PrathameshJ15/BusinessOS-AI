@@ -1,0 +1,275 @@
+// BusinessOS AI - Multi-Tenant Neon PostgreSQL Schema
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum AccountStatus {
+  ACTIVE
+  TRIAL
+  SUSPENDED
+}
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String
+  avatarUrl   String?
+  phone       String?
+  memberships Membership[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Organization {
+  id               String            @id @default(cuid())
+  name             String
+  slug             String            @unique
+  logoUrl          String?
+  plan             Plan              @default(PRO)
+  status           AccountStatus     @default(ACTIVE)
+  currency         String            @default("INR")
+  timezone         String            @default("Asia/Kolkata")
+  memberships      Membership[]
+  profile          BusinessProfile?
+  customers        Customer[]
+  leads            Lead[]
+  services         Service[]
+  staff            Staff[]
+  bookings         Booking[]
+  campaigns        Campaign[]
+  reviews          Review[]
+  websites         Website[]
+  invoices         Invoice[]
+  tasks            Task[]
+  notifications    Notification[]
+  integrations     Integration[]
+  subscription     Subscription?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           Role         @default(STAFF)
+  permissions    String[]
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, userId])
+}
+
+model BusinessProfile {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  businessType   String       @default("SALON")
+  tagline        String
+  description    String
+  phone          String
+  email          String
+  address        String
+  city           String
+  state          String
+  zipCode        String
+  websiteUrl     String?
+  googleRating   Float        @default(4.9)
+  totalReviews   Int          @default(0)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  email          String
+  phone          String
+  tags           String[]
+  status         String       @default("ACTIVE")
+  lifetimeValue  Float        @default(0)
+  totalBookings  Int          @default(0)
+  lastActivityAt DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Lead {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  email          String
+  phone          String
+  source         String
+  stage          String       @default("NEW")
+  estimatedValue Float
+  notes          String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Service {
+  id              String       @id @default(cuid())
+  organizationId  String
+  name            String
+  description     String
+  category        String
+  durationMinutes Int
+  price           Float
+  isActive        Boolean      @default(true)
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Staff {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  role           String
+  email          String
+  phone          String
+  avatarUrl      String?
+  isAvailable    Boolean      @default(true)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id             String       @id @default(cuid())
+  organizationId String
+  customerId     String
+  customerName   String
+  customerPhone  String
+  serviceId      String
+  serviceName    String
+  staffId        String
+  staffName      String
+  startTime      DateTime
+  endTime        DateTime
+  status         String       @default("CONFIRMED")
+  paymentStatus  String       @default("UNPAID")
+  totalAmount    Float
+  notes          String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Campaign {
+  id              String       @id @default(cuid())
+  organizationId  String
+  name            String
+  channel         String
+  status          String       @default("COMPLETED")
+  subject         String?
+  content         String
+  targetAudience  String
+  totalRecipients Int          @default(0)
+  deliveredCount  Int          @default(0)
+  openedCount     Int          @default(0)
+  clickedCount    Int          @default(0)
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime     @default(now())
+}
+
+model Review {
+  id                  String       @id @default(cuid())
+  organizationId      String
+  authorName          String
+  authorAvatar        String?
+  rating              Int
+  platform            String
+  content             String
+  sentiment           String       @default("POSITIVE")
+  aiSuggestedResponse String?
+  responseText        String?
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt           DateTime     @default(now())
+}
+
+model Website {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  domainName     String
+  subdomain      String       @unique
+  isPublished    Boolean      @default(false)
+  themeColor     String       @default("#0F172A")
+  fontFamily     String       @default("Inter")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  updatedAt      DateTime     @updatedAt
+}
+
+model Invoice {
+  id                String       @id @default(cuid())
+  organizationId    String
+  invoiceNumber     String       @unique
+  customerName      String
+  customerEmail     String
+  amount            Float
+  tax               Float
+  total             Float
+  currency          String       @default("INR")
+  status            String       @default("UNPAID")
+  dueDate           DateTime
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt         DateTime     @default(now())
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  organizationId String
+  title          String
+  description    String
+  status         String       @default("TODO")
+  dueDate        DateTime
+  priority       String       @default("MEDIUM")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Notification {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  type           String
+  title          String
+  message        String
+  isRead         Boolean      @default(false)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Integration {
+  id             String       @id @default(cuid())
+  organizationId String
+  provider       String
+  status         String       @default("CONNECTED")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                     String       @id @default(cuid())
+  organizationId         String       @unique
+  plan                   Plan         @default(PRO)
+  status                 String       @default("ACTIVE")
+  amount                 Float
+  currency               String       @default("INR")
+  razorpaySubscriptionId String?
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
