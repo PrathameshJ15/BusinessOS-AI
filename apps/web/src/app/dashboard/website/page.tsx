@@ -38,555 +38,354 @@ import {
 export default function AIWebsiteBuilderPage() {
   const { website, updateWebsiteBlock, publishWebsiteToggle, addCustomer, canAccess, addToast } = useApp();
 
-  // Primary Navigation Sub-Tabs
   const [activeTab, setActiveTab] = useState<
     'overview' | 'websites' | 'templates' | 'editor' | 'forms' | 'seo' | 'domains'
   >('overview');
 
-  // AI Generator Modal Wizard State
   const [isAiGeneratorOpen, setIsAiGeneratorOpen] = useState(false);
   const [genStep, setGenStep] = useState(1);
   const [genName, setGenName] = useState('Lumina Luxe Spa');
   const [genType, setGenType] = useState('Salon & Spa');
-  const [genCity, setGenCity] = useState('Hyderabad');
-  const [genDesc, setGenDesc] = useState('Premier aesthetic skincare and luxury massage spa.');
-  const [genServices, setGenServices] = useState('Hydra-Facial, Aromatherapy Massage, Styling');
-  const [genBrandStyle, setGenBrandStyle] = useState('Premium');
+  const [genTheme, setGenTheme] = useState('Luxury Gold');
+  const [genServices, setGenServices] = useState('Hair Styling, Hydra-Facial, Aromatherapy');
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Editor State
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
-  const [selectedBlockId, setSelectedBlockId] = useState<string>('blk-1');
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [editingHeading, setEditingHeading] = useState('');
+  const [editingSubheading, setEditingSubheading] = useState('');
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
 
-  // SEO Form State
-  const [pageTitle, setPageTitle] = useState('Lumina Luxe Spa & Salon | Luxury Skincare');
-  const [metaDesc, setMetaDesc] = useState('Experience Hyderabad premier hydra-facials, body massages, and precision hair styling.');
-  const [ogImage, setOgImage] = useState('https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200');
+  const [leadFormName, setLeadFormName] = useState('');
+  const [leadFormPhone, setLeadFormPhone] = useState('');
 
-  // Form Test Submissions State
-  const [formTestName, setFormTestName] = useState('');
-  const [formTestPhone, setFormTestPhone] = useState('');
+  const activePage = website.pages[0];
+  const selectedBlock = activePage?.blocks.find((b) => b.id === selectedBlockId);
 
-  const currentPage = website.pages[0];
-  const selectedBlock = currentPage.blocks.find((b) => b.id === selectedBlockId) || currentPage.blocks[0];
+  const handleAiGenerationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsGenerating(true);
 
-  const [editTitle, setEditTitle] = useState(selectedBlock.title);
-  const [editSubtitle, setEditSubtitle] = useState(selectedBlock.subtitle || '');
-
-  // Templates List
-  const templates = [
-    { id: 'tmpl-1', name: 'Premium Slate', style: 'Premium', color: '#0F172A', active: true },
-    { id: 'tmpl-2', name: 'Minimal Radiance', style: 'Minimal', color: '#3B82F6', active: false },
-    { id: 'tmpl-3', name: 'Executive Dark', style: 'Professional', color: '#020617', active: false },
-    { id: 'tmpl-4', name: 'Botanical Spa', style: 'Salon', color: '#059669', active: false },
-    { id: 'tmpl-5', name: 'Urban Bistro', style: 'Restaurant', color: '#D97706', active: false },
-    { id: 'tmpl-6', name: 'Modern Agency', style: 'Agency', color: '#6366F1', active: false },
-  ];
-
-  const handleApplyTemplate = (templateName: string) => {
-    addToast({ type: 'success', title: 'Template Applied', message: `Loaded '${templateName}' layout style.` });
+    setTimeout(() => {
+      setIsGenerating(false);
+      setIsAiGeneratorOpen(false);
+      setGenStep(1);
+      addToast({ type: 'success', title: 'Website Generated', message: `Custom site live for ${genName}` });
+    }, 1500);
   };
 
-  const handleAiGeneratorSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAiGeneratorOpen(false);
-    setGenStep(1);
-
-    // AI Structured JSON Generator Simulation
-    updateWebsiteBlock('blk-1', {
-      title: `Welcome to ${genName}`,
-      subtitle: `${genDesc} Located in ${genCity}.`,
-    });
-
-    addToast({
-      type: 'success',
-      title: 'AI Website Structure Generated',
-      message: `Created structured pages for ${genName} (${genBrandStyle} theme).`,
-    });
+  const handleSelectBlockForEditing = (block: WebsiteBlock) => {
+    setSelectedBlockId(block.id);
+    setEditingHeading(block.content.heading || '');
+    setEditingSubheading(block.content.subheading || '');
   };
 
-  const handleSaveBlockText = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateWebsiteBlock(selectedBlockId, {
-      title: editTitle,
-      subtitle: editSubtitle,
-    });
+  const handleSaveBlockEdit = () => {
+    if (!selectedBlockId) return;
+    updateWebsiteBlock(selectedBlockId, { heading: editingHeading, subheading: editingSubheading });
+    setSelectedBlockId(null);
   };
 
-  const handleTestFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmission = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTestName || !formTestPhone) return;
-
-    addCustomer({
-      name: formTestName,
-      phone: formTestPhone,
-      tags: ['Website Lead'],
-      status: 'ACTIVE',
-      lifetimeValue: 0,
-    });
-
-    setFormTestName('');
-    setFormTestPhone('');
-    addToast({ type: 'success', title: 'Form Submitted', message: 'Lead captured & added to Customers module.' });
+    if (!leadFormName || !leadFormPhone) return;
+    addCustomer({ name: leadFormName, phone: leadFormPhone, tags: ['Website Lead'] });
+    setLeadFormName('');
+    setLeadFormPhone('');
+    addToast({ type: 'success', title: 'Lead Captured', message: 'Added lead to CRM repository.' });
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">AI Website Builder & Hosting</h1>
-          <p className="text-xs text-slate-500 mt-1">Structured JSON website generator, block editor, templates, and lead forms.</p>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white flex items-center gap-2">
+            <span>AI Web Builder & Lead Funnels</span>
+            <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              {website.isPublished ? 'Published Live' : 'Draft Mode'}
+            </span>
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            Build high-converting SMB websites in under 60 seconds with AI blocks, online booking forms, and custom domain hosting.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsAiGeneratorOpen(true)}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>Create Website with AI</span>
-          </button>
+          {canAccess('website:write') ? (
+            <button
+              onClick={() => setIsAiGeneratorOpen(true)}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Generate Site with AI</span>
+            </button>
+          ) : (
+            <span className="text-xs text-zinc-400 font-mono px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+              Role: Restricted (Read Only)
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Primary Module Navigation Tabs */}
-      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-subtle flex flex-wrap gap-1">
+      {/* Tabs Navigation */}
+      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-wrap gap-2">
         {[
-          { id: 'overview', label: 'Overview' },
-          { id: 'websites', label: 'Websites' },
-          { id: 'templates', label: 'Templates' },
-          { id: 'editor', label: 'Block Editor' },
-          { id: 'forms', label: 'Forms & Leads' },
-          { id: 'seo', label: 'SEO Settings' },
-          { id: 'domains', label: 'Domains' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
-              activeTab === tab.id
-                ? 'bg-slate-900 text-white shadow'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { id: 'overview', label: 'Funnel Overview', icon: Globe },
+          { id: 'editor', label: 'Visual Block Editor', icon: Edit3 },
+          { id: 'forms', label: 'Lead Capture Forms', icon: FileText },
+          { id: 'seo', label: 'SEO & Metadata', icon: Search },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+                activeTab === tab.id
+                  ? 'bg-zinc-900 dark:bg-zinc-800 text-white shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* OVERVIEW (WEBSITE DASHBOARD) */}
+      {/* OVERVIEW TAB */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Website Status</span>
-              <div className="mt-2 flex items-center justify-between">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    website.isPublished
-                      ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                      : 'bg-amber-50 text-amber-600 border border-amber-200'
-                  }`}
-                >
-                  {website.isPublished ? 'Published & Live' : 'Draft Mode'}
-                </span>
-                <button onClick={publishWebsiteToggle} className="text-xs text-blue-600 font-bold hover:underline">
-                  Toggle
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Unique Visitors</span>
-              <p className="text-2xl font-bold text-slate-900 mt-1">1,420</p>
-              <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <TrendingUp className="w-3.5 h-3.5" /> +24% this month
-              </span>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Leads Generated</span>
-              <p className="text-2xl font-bold text-slate-900 mt-1">38</p>
-              <span className="text-[11px] text-blue-600 font-semibold mt-1 block">Injected to Customers CRM</span>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Active Forms</span>
-              <p className="text-2xl font-bold text-slate-900 mt-1">3</p>
-              <span className="text-[11px] text-slate-400 mt-1 block">Contact, Lead, Booking CTA</span>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 p-6 rounded-3xl text-white border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-xs text-blue-400 font-mono">Live Subdomain Endpoint</span>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <span>https://{website.subdomain}.businessos.app</span>
-                <ExternalLink className="w-4 h-4 text-slate-400" />
-              </h3>
-              <p className="text-xs text-slate-400">Last Published: {new Date(website.updatedAt).toLocaleString()}</p>
-            </div>
-
-            <button
-              onClick={() => setActiveTab('editor')}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow"
-            >
-              Open Block Editor
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* WEBSITES TAB */}
-      {activeTab === 'websites' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-900">Your Business Websites</h3>
-            <span className="text-xs text-slate-500">1 Website Configured</span>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
-                W
-              </div>
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
               <div>
-                <h4 className="text-xs font-bold text-slate-900">{website.domainName}</h4>
-                <p className="text-[11px] text-slate-500">https://{website.subdomain}.businessos.app</p>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white">{website.domainName}</h3>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">https://{website.subdomain}.businessos.app</p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                ACTIVE
-              </span>
-              <button
-                onClick={() => setActiveTab('editor')}
-                className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg"
-              >
-                Edit Site
+              <button onClick={publishWebsiteToggle} className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
+                {website.isPublished ? 'Unpublish Site' : 'Publish Live Now'}
               </button>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
+                <span className="text-[10px] text-zinc-400 uppercase font-mono">Monthly Visitors</span>
+                <p className="text-xl font-bold text-zinc-900 dark:text-white mt-1">1,420 Unique Views</p>
+              </div>
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
+                <span className="text-[10px] text-zinc-400 uppercase font-mono">Lead Conversions</span>
+                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 font-display mt-1">42 Inquiries Submitted</p>
+              </div>
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
+                <span className="text-[10px] text-zinc-400 uppercase font-mono">Form Completion Rate</span>
+                <p className="text-xl font-bold text-zinc-900 dark:text-white mt-1">8.4% Conversion</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* TEMPLATES TAB */}
-      {activeTab === 'templates' && (
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-subtle">
-            <h3 className="text-sm font-bold text-slate-900">Choose Website Template Style</h3>
-            <p className="text-xs text-slate-500 mt-0.5">All templates share the unified structured JSON data model.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {templates.map((tmpl) => (
-              <div key={tmpl.id} className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle space-y-3 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-900">{tmpl.name}</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                      {tmpl.style}
-                    </span>
-                  </div>
-                  <div className="h-24 rounded-xl bg-slate-950 p-3 flex flex-col justify-center text-white space-y-1">
-                    <span className="text-[10px] font-bold text-blue-400">{tmpl.name} Hero</span>
-                    <span className="text-[9px] text-slate-400">Sample structured block styling...</span>
-                  </div>
-                </div>
-
+      {/* VISUAL EDITOR TAB */}
+      {activeTab === 'editor' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-zinc-100 dark:bg-zinc-950 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4 min-h-[500px]">
+            <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs">
+              <span className="font-bold text-zinc-900 dark:text-white">Live Canvas Preview</span>
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => handleApplyTemplate(tmpl.name)}
-                  className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow"
+                  onClick={() => setViewportMode('desktop')}
+                  className={`p-1.5 rounded-lg ${viewportMode === 'desktop' ? 'bg-zinc-900 text-white' : 'text-zinc-400'}`}
                 >
-                  Apply {tmpl.style} Style
+                  <Monitor className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewportMode('mobile')}
+                  className={`p-1.5 rounded-lg ${viewportMode === 'mobile' ? 'bg-zinc-900 text-white' : 'text-zinc-400'}`}
+                >
+                  <Smartphone className="w-4 h-4" />
                 </button>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
 
-      {/* BLOCK EDITOR TAB */}
-      {activeTab === 'editor' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Block Library (3 Cols) */}
-          <div className="lg:col-span-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-100">
-              Block Library
-            </h3>
-            <div className="space-y-2">
-              {currentPage.blocks.map((blk) => (
-                <button
-                  key={blk.id}
-                  onClick={() => {
-                    setSelectedBlockId(blk.id);
-                    setEditTitle(blk.title);
-                    setEditSubtitle(blk.subtitle || '');
-                  }}
-                  className={`w-full p-2.5 rounded-xl border text-xs text-left transition-all ${
-                    selectedBlockId === blk.id
-                      ? 'bg-blue-50 border-blue-300 font-bold text-blue-900'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+            <div className={`mx-auto transition-all ${viewportMode === 'mobile' ? 'max-w-sm' : 'w-full'} space-y-4`}>
+              {activePage.blocks.map((block) => (
+                <div
+                  key={block.id}
+                  onClick={() => handleSelectBlockForEditing(block)}
+                  className={`p-6 rounded-2xl bg-white dark:bg-zinc-900 border transition-all cursor-pointer ${
+                    selectedBlockId === block.id ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-zinc-200 dark:border-zinc-800 hover:border-emerald-300'
                   }`}
                 >
-                  <span className="block uppercase text-[10px] text-slate-400 font-mono">{blk.type}</span>
-                  <span className="truncate block">{blk.title}</span>
-                </button>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 uppercase">
+                    {block.type} BLOCK
+                  </span>
+                  <h2 className="text-lg font-bold text-zinc-900 dark:text-white mt-2">{block.content.heading}</h2>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{block.content.subheading}</p>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Center Canvas (6 Cols) */}
-          <div className="lg:col-span-6 bg-slate-950 p-4 rounded-3xl border border-slate-800 shadow-2xl flex flex-col items-center min-h-[500px]">
-            <div className="flex items-center justify-between w-full pb-3 border-b border-slate-800 text-xs text-slate-400">
-              <span className="font-mono text-[10px]">LIVE CANVAS</span>
-              <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
-                <button onClick={() => setPreviewDevice('desktop')} className={`p-1 rounded ${previewDevice === 'desktop' ? 'bg-slate-800 text-white' : ''}`}>
-                  <Monitor className="w-3.5 h-3.5" />
-                </button>
-                <button onClick={() => setPreviewDevice('mobile')} className={`p-1 rounded ${previewDevice === 'mobile' ? 'bg-slate-800 text-white' : ''}`}>
-                  <Smartphone className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            <div className={`mt-4 bg-slate-900 rounded-2xl p-6 text-white space-y-6 border border-slate-800 transition-all ${previewDevice === 'desktop' ? 'w-full' : 'w-[300px]'}`}>
-              <div className="text-center space-y-2">
-                <span className="text-[10px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-                  {selectedBlock.type} BLOCK
-                </span>
-                <h2 className="text-lg font-bold">{selectedBlock.title}</h2>
-                <p className="text-xs text-slate-400">{selectedBlock.subtitle}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Properties Panel (3 Cols) */}
-          <div className="lg:col-span-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-100">
-              Block Settings
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              {selectedBlock ? `Edit ${selectedBlock.type} Block` : 'Select a Block to Edit'}
             </h3>
-            <form onSubmit={handleSaveBlockText} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Title</label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                />
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Subtitle</label>
-                <textarea
-                  rows={3}
-                  value={editSubtitle}
-                  onChange={(e) => setEditSubtitle(e.target.value)}
-                  className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                />
-              </div>
+            {selectedBlock ? (
+              <div className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Block Heading</label>
+                  <input
+                    type="text"
+                    value={editingHeading}
+                    onChange={(e) => setEditingHeading(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
 
-              <button type="submit" className="w-full py-2 bg-slate-900 text-white text-xs font-bold rounded-xl shadow">
-                Save Block
-              </button>
-            </form>
+                <div>
+                  <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Subheading Copy</label>
+                  <textarea
+                    rows={3}
+                    value={editingSubheading}
+                    onChange={(e) => setEditingSubheading(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+
+                <button
+                  onClick={handleSaveBlockEdit}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs shadow transition-all"
+                >
+                  Save Block Changes
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-400">Click any block in the canvas to customize text copy, call-to-actions, and background layouts.</p>
+            )}
           </div>
         </div>
       )}
 
-      {/* FORMS TAB */}
+      {/* LEAD CAPTURE FORMS TAB */}
       {activeTab === 'forms' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-            <h3 className="text-sm font-bold text-slate-900">Active Website Lead Forms</h3>
-            <div className="space-y-3">
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">Contact Us Form</h4>
-                  <p className="text-[10px] text-slate-500">Destination: Customers CRM</p>
-                </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200">
-                  ACTIVE
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm max-w-xl space-y-4">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-white border-b border-zinc-100 dark:border-zinc-800 pb-3">Test Live Lead Capture Form</h3>
 
-          {/* Interactive Test Submission */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-            <h3 className="text-sm font-bold text-slate-900">Test Lead Form Submission</h3>
-            <form onSubmit={handleTestFormSubmit} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Test Client"
-                  value={formTestName}
-                  onChange={(e) => setFormTestName(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Phone</label>
-                <input
-                  type="text"
-                  placeholder="+91 99999 00000"
-                  value={formTestPhone}
-                  onChange={(e) => setFormTestPhone(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                />
-              </div>
-              <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow">
-                Submit Test Lead
-              </button>
-            </form>
-          </div>
+          <form onSubmit={handleFormSubmission} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Full Name</label>
+              <input
+                type="text"
+                required
+                value={leadFormName}
+                onChange={(e) => setLeadFormName(e.target.value)}
+                placeholder="Enter client name..."
+                className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Phone Number (+91)</label>
+              <input
+                type="text"
+                required
+                value={leadFormPhone}
+                onChange={(e) => setLeadFormPhone(e.target.value)}
+                placeholder="+91 98000 00000"
+                className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+              />
+            </div>
+
+            <button type="submit" className="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl shadow">
+              Submit Form Lead
+            </button>
+          </form>
         </div>
       )}
 
       {/* SEO TAB */}
       {activeTab === 'seo' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle max-w-2xl space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-100">SEO Meta Tags & Sitemap</h3>
-          <div className="space-y-3">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm max-w-xl space-y-4">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-white border-b border-zinc-100 dark:border-zinc-800 pb-3">SEO & OpenGraph Metadata</h3>
+          <div className="space-y-3 text-xs">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Page Meta Title</label>
+              <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Meta Title</label>
               <input
                 type="text"
-                value={pageTitle}
-                onChange={(e) => setPageTitle(e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                defaultValue={website.domainName}
+                className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Meta Description</label>
+              <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Meta Description</label>
               <textarea
-                rows={3}
-                value={metaDesc}
-                onChange={(e) => setMetaDesc(e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                rows={2}
+                defaultValue="Lumina Luxe Spa — Premier luxury hair salon, hydra-facial aesthetics, and wellness spa in Mumbai."
+                className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
               />
             </div>
-            <button onClick={() => addToast({ type: 'success', title: 'SEO Saved', message: 'Meta tags updated.' })} className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl shadow">
-              Save Meta Settings
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* DOMAINS TAB */}
-      {activeTab === 'domains' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle max-w-2xl space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-100">Custom Domain Configuration</h3>
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-            <span className="font-bold text-slate-900">Custom Domain: luminaluxe.com</span>
-            <p className="text-slate-500">Add a CNAME DNS record pointing <code className="bg-slate-200 px-1 py-0.5 rounded font-mono">@</code> to <code className="bg-slate-200 px-1 py-0.5 rounded font-mono">lumina-luxe.businessos.app</code>.</p>
-            <span className="inline-block px-2.5 py-0.5 rounded bg-blue-50 text-blue-700 font-mono text-[10px] font-bold">
-              DNS Verification Pending
-            </span>
           </div>
         </div>
       )}
 
       {/* AI GENERATOR MODAL WIZARD */}
       {isAiGeneratorOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span>AI Website Structure Wizard (Step {genStep} of 3)</span>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>AI Website Builder Wizard</span>
               </h3>
-              <button onClick={() => setIsAiGeneratorOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-4 h-4" />
+              <button onClick={() => setIsAiGeneratorOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-white">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAiGeneratorSubmit} className="space-y-4">
-              {genStep === 1 && (
-                <>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Business Name</label>
-                    <input
-                      type="text"
-                      value={genName}
-                      onChange={(e) => setGenName(e.target.value)}
-                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">City / Location</label>
-                    <input
-                      type="text"
-                      value={genCity}
-                      onChange={(e) => setGenCity(e.target.value)}
-                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                    />
-                  </div>
-                </>
-              )}
+            <form onSubmit={handleAiGenerationSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Business Name</label>
+                <input
+                  type="text"
+                  required
+                  value={genName}
+                  onChange={(e) => setGenName(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
 
-              {genStep === 2 && (
-                <>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Business Description</label>
-                    <textarea
-                      rows={2}
-                      value={genDesc}
-                      onChange={(e) => setGenDesc(e.target.value)}
-                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Core Services</label>
-                    <input
-                      type="text"
-                      value={genServices}
-                      onChange={(e) => setGenServices(e.target.value)}
-                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                    />
-                  </div>
-                </>
-              )}
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Industry</label>
+                <select
+                  value={genType}
+                  onChange={(e) => setGenType(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                >
+                  <option value="Salon & Spa">Salon & Spa</option>
+                  <option value="Medical Clinic">Medical Clinic</option>
+                  <option value="Restaurant">Restaurant</option>
+                  <option value="Fitness Gym">Fitness Gym</option>
+                </select>
+              </div>
 
-              {genStep === 3 && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Brand Visual Style</label>
-                  <select
-                    value={genBrandStyle}
-                    onChange={(e) => setGenBrandStyle(e.target.value)}
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                  >
-                    <option value="Premium">Premium Slate</option>
-                    <option value="Minimal">Minimal Modern</option>
-                    <option value="Bold">Bold & Vibrant</option>
-                    <option value="Warm">Warm Botanical</option>
-                  </select>
-                </div>
-              )}
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Key Offerings / Services</label>
+                <input
+                  type="text"
+                  value={genServices}
+                  onChange={(e) => setGenServices(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                {genStep > 1 ? (
-                  <button type="button" onClick={() => setGenStep((s) => s - 1)} className="text-xs text-slate-600 font-bold">
-                    Back
-                  </button>
-                ) : <div />}
-
-                {genStep < 3 ? (
-                  <button
-                    type="button"
-                    onClick={() => setGenStep((s) => s + 1)}
-                    className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold shadow"
-                  >
-                    Next Step
-                  </button>
-                ) : (
-                  <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow">
-                    Generate Structured Website
-                  </button>
-                )}
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button type="button" onClick={() => setIsAiGeneratorOpen(false)} className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl">
+                  Cancel
+                </button>
+                <button type="submit" disabled={isGenerating} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center gap-1.5">
+                  {isGenerating ? 'Building Site...' : 'Generate AI Website'}
+                </button>
               </div>
             </form>
           </div>

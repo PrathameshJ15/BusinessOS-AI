@@ -1,57 +1,36 @@
-import { createAIService } from '@businessos/ai';
-import { AuthSession, authorizeAction } from '@businessos/auth';
-import { dbRepository } from '@businessos/database';
+import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
-export class BusinessOSApiEngine {
-  private aiService = createAIService('openai');
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
-  // Middleware simulation for extracting tenant & session
-  private getSession(reqRole: 'OWNER' | 'MANAGER' | 'STAFF' = 'OWNER'): AuthSession {
-    return {
-      userId: 'usr-1',
-      userName: 'Ananya Verma',
-      userEmail: 'ananya@luminaluxe.com',
-      organizationId: 'org-lumina-101',
-      organizationName: 'Lumina Luxe Spa & Salon',
-      role: reqRole,
-    };
-  }
+  // Enable CORS for frontend integration
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
 
-  public getDashboardOverview(role: 'OWNER' | 'MANAGER' | 'STAFF' = 'OWNER') {
-    const session = this.getSession(role);
-    const auth = authorizeAction(session, 'org:read');
-    if (!auth.authorized) throw new Error(auth.reason);
+  // Global API Prefix
+  app.setGlobalPrefix('api');
 
-    const customers = dbRepository.getCustomers(session.organizationId);
-    const bookings = dbRepository.getBookings(session.organizationId);
-    const leads = dbRepository.getLeads(session.organizationId);
-    const reviews = dbRepository.getReviews(session.organizationId);
-    const invoices = dbRepository.getInvoices(session.organizationId);
+  // OpenAPI Swagger Setup
+  const config = new DocumentBuilder()
+    .setTitle('BusinessOS AI — Enterprise Multi-Tenant REST API')
+    .setDescription('Production-grade NestJS REST API supporting RBAC, tenant isolation, AI co-pilot tools, and Razorpay billing.')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
 
-    const totalRevenue = invoices.reduce((acc, inv) => acc + (inv.status === 'PAID' ? inv.total : 0), 0);
-    const activeCustomers = customers.filter((c) => c.status === 'ACTIVE' || c.status === 'VIP').length;
-    const pendingBookings = bookings.filter((b) => b.status === 'PENDING' || b.status === 'CONFIRMED').length;
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
-    return {
-      organization: dbRepository.getOrganization(session.organizationId),
-      stats: {
-        totalRevenue,
-        activeCustomers,
-        pendingBookings,
-        leadsCount: leads.length,
-        averageRating: 4.9,
-      },
-      recentBookings: bookings.slice(0, 5),
-      recentReviews: reviews.slice(0, 3),
-      pendingLeads: leads.slice(0, 3),
-    };
-  }
-
-  public async executeAICommand(prompt: string, role: 'OWNER' | 'MANAGER' | 'STAFF' = 'OWNER') {
-    const session = this.getSession(role);
-    return await this.aiService.processUserCommand(prompt, session);
-  }
+  const port = process.env.PORT || 4000;
+  await app.listen(port);
+  console.log(`🚀 BusinessOS NestJS Production API running at: http://localhost:${port}/api`);
+  console.log(`📄 Swagger OpenAPI Documentation running at: http://localhost:${port}/api/docs`);
 }
 
-export const apiEngine = new BusinessOSApiEngine();
-console.log('BusinessOS NestJS API Engine initialized.');
+bootstrap();

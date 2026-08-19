@@ -48,6 +48,10 @@ export class BusinessOSRepository {
     return this.profile;
   }
 
+  getBusinessProfile(orgId: string) {
+    return this.getProfile(orgId);
+  }
+
   getCustomers(orgId: string) {
     return this.customers.filter((c) => c.organizationId === orgId);
   }
@@ -103,19 +107,38 @@ export class BusinessOSRepository {
   }
 
   // Operations / Mutations
-  addCustomer(customer: any) {
+  addCustomer(orgId: string | any, data?: any) {
+    const customer = typeof orgId === 'string' ? { ...data, id: `cust-${Date.now()}`, organizationId: orgId } : orgId;
     this.customers.unshift(customer);
     return customer;
   }
 
-  addBooking(booking: any) {
+  updateLeadStage(orgId: string, leadId: string, stage: string) {
+    const lead = this.leads.find((l) => l.id === leadId);
+    if (lead) {
+      lead.stage = stage as any;
+    }
+    return lead;
+  }
+
+  addBooking(orgId: string | any, data?: any) {
+    const booking = typeof orgId === 'string' ? { ...data, id: `bk-${Date.now()}`, organizationId: orgId } : orgId;
     this.bookings.unshift(booking);
     return booking;
   }
 
-  addCampaign(campaign: any) {
+  addCampaign(orgId: string | any, data?: any) {
+    const campaign = typeof orgId === 'string' ? { ...data, id: `cmp-${Date.now()}`, organizationId: orgId } : orgId;
     this.campaigns.unshift(campaign);
     return campaign;
+  }
+
+  replyToReview(orgId: string, reviewId: string, responseText: string) {
+    const rev = this.reviews.find((r) => r.id === reviewId);
+    if (rev) {
+      rev.responseText = responseText;
+    }
+    return rev;
   }
 
   addInvoice(invoice: any) {
@@ -128,11 +151,24 @@ export class BusinessOSRepository {
     return this.website;
   }
 
+  updateWebsiteBlock(orgId: string, blockId: string, content: any) {
+    const updatedPages = this.website.pages.map((pg) => ({
+      ...pg,
+      blocks: pg.blocks.map((blk) => (blk.id === blockId ? { ...blk, content: { ...blk.content, ...content } } : blk)),
+    }));
+    this.website = { ...this.website, pages: updatedPages, updatedAt: new Date().toISOString() };
+    return this.website;
+  }
+
+  publishWebsiteToggle(orgId: string) {
+    this.website = { ...this.website, isPublished: !this.website.isPublished, updatedAt: new Date().toISOString() };
+    return this.website;
+  }
+
   updateReviewResponse(reviewId: string, responseText: string) {
     const rev = this.reviews.find((r) => r.id === reviewId);
     if (rev) {
       rev.responseText = responseText;
-      rev.respondedAt = new Date().toISOString();
     }
     return rev;
   }

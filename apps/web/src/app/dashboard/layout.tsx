@@ -5,7 +5,7 @@ import { SidebarNav, HeaderNav } from '../../components/Navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex bg-slate-50 font-sans text-slate-900">
+    <div className="min-h-screen flex bg-zinc-50 dark:bg-[#09090b] font-sans text-zinc-900 dark:text-zinc-100 transition-colors duration-300">
       <SidebarNav />
       <div className="flex-1 flex flex-col min-w-0">
         <HeaderNav />

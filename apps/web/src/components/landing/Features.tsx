@@ -18,7 +18,7 @@ export const Features: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-20 px-6 bg-slate-900 text-white border-t border-slate-800">
+    <section id="features" className="py-20 px-6 bg-slate-900/60 backdrop-blur-sm text-white border-t border-slate-800/80">
       <div className="max-w-7xl mx-auto space-y-10">
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Complete Feature Matrix</span>

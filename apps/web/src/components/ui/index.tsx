@@ -27,10 +27,10 @@ export const Button: React.FC<ButtonProps> = ({
     lg: 'px-5 py-2.5 text-sm',
   };
   const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-500 shadow-md shadow-blue-600/20 active:scale-[0.98]',
-    secondary: 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm active:scale-[0.98]',
-    outline: 'border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300',
-    ghost: 'text-slate-600 hover:text-slate-900 hover:bg-slate-100',
+    primary: 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-md shadow-emerald-600/20 active:scale-[0.98]',
+    secondary: 'bg-zinc-900 dark:bg-zinc-800 text-white hover:bg-zinc-800 dark:hover:bg-zinc-700 shadow-sm active:scale-[0.98]',
+    outline: 'border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-200 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800',
+    ghost: 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800',
     danger: 'bg-rose-600 text-white hover:bg-rose-500 shadow-sm',
   };
 
@@ -54,10 +54,10 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input: React.FC<InputProps> = ({ label, error, className = '', ...props }) => (
   <div className="w-full space-y-1">
-    {label && <label className="block text-xs font-bold text-slate-700">{label}</label>}
+    {label && <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">{label}</label>}
     <input
-      className={`w-full text-xs p-2.5 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
-        error ? 'border-rose-400 focus:border-rose-500' : 'border-slate-200 focus:border-blue-500'
+      className={`w-full text-xs p-2.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all ${
+        error ? 'border-rose-400 focus:border-rose-500' : 'border-zinc-200 dark:border-zinc-700 focus:border-emerald-500'
       } ${className}`}
       {...props}
     />
@@ -72,9 +72,9 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 
 export const Select: React.FC<SelectProps> = ({ label, children, className = '', ...props }) => (
   <div className="w-full space-y-1">
-    {label && <label className="block text-xs font-bold text-slate-700">{label}</label>}
+    {label && <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">{label}</label>}
     <select
-      className={`w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${className}`}
+      className={`w-full text-xs p-2.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all ${className}`}
       {...props}
     >
       {children}
@@ -84,21 +84,21 @@ export const Select: React.FC<SelectProps> = ({ label, children, className = '',
 
 // 4. Card Component
 export const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle ${className}`}>{children}</div>
+  <div className={`bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm ${className}`}>{children}</div>
 );
 
 // 5. Badge Component
 export const Badge: React.FC<{
   children: React.ReactNode;
-  variant?: 'blue' | 'emerald' | 'amber' | 'rose' | 'slate';
+  variant?: 'emerald' | 'amber' | 'rose' | 'slate' | 'zinc';
   className?: string;
-}> = ({ children, variant = 'blue', className = '' }) => {
+}> = ({ children, variant = 'emerald', className = '' }) => {
   const styles = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    amber: 'bg-amber-50 text-amber-600 border-amber-200',
-    rose: 'bg-rose-50 text-rose-600 border-rose-200',
-    slate: 'bg-slate-100 text-slate-600 border-slate-200',
+    emerald: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+    amber: 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+    rose: 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800',
+    slate: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700',
+    zinc: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700',
   };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${styles[variant]} ${className}`}>
@@ -111,10 +111,10 @@ export const Badge: React.FC<{
 export const Avatar: React.FC<{ name: string; src?: string; size?: 'sm' | 'md' | 'lg' }> = ({ name, src, size = 'md' }) => {
   const sizes = { sm: 'w-7 h-7 text-[10px]', md: 'w-9 h-9 text-xs', lg: 'w-12 h-12 text-sm' };
   if (src) {
-    return <img src={src} alt={name} className={`${sizes[size]} rounded-full object-cover border border-slate-200`} />;
+    return <img src={src} alt={name} className={`${sizes[size]} rounded-full object-cover border border-zinc-200 dark:border-zinc-700`} />;
   }
   return (
-    <div className={`${sizes[size]} rounded-full bg-slate-900 text-white font-bold flex items-center justify-center shadow-xs`}>
+    <div className={`${sizes[size]} rounded-full bg-zinc-900 dark:bg-zinc-800 text-white font-bold flex items-center justify-center shadow-xs`}>
       {name.charAt(0).toUpperCase()}
     </div>
   );
@@ -126,13 +126,15 @@ export const Tabs: React.FC<{
   activeTab: string;
   onChange: (id: string) => void;
 }> = ({ tabs, activeTab, onChange }) => (
-  <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl border border-slate-200/80">
+  <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
     {tabs.map((tab) => (
       <button
         key={tab.id}
         onClick={() => onChange(tab.id)}
         className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-          activeTab === tab.id ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          activeTab === tab.id
+            ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs'
+            : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
         }`}
       >
         {tab.label}
@@ -147,12 +149,12 @@ export const EmptyState: React.FC<{ title: string; description: string; action?:
   description,
   action,
 }) => (
-  <div className="p-8 text-center bg-white rounded-2xl border border-slate-200/80 shadow-subtle my-4">
-    <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+  <div className="p-8 text-center bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm my-4">
+    <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 flex items-center justify-center mx-auto mb-3">
       <Inbox className="w-6 h-6" />
     </div>
-    <h4 className="text-sm font-bold text-slate-900 mb-1">{title}</h4>
-    <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">{description}</p>
+    <h4 className="text-sm font-bold text-zinc-900 dark:text-white mb-1">{title}</h4>
+    <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto mb-4">{description}</p>
     {action}
   </div>
 );
@@ -160,8 +162,8 @@ export const EmptyState: React.FC<{ title: string; description: string; action?:
 // 9. LoadingState Component
 export const LoadingState: React.FC<{ message?: string }> = ({ message = 'Loading workspace details...' }) => (
   <div className="p-12 text-center flex flex-col items-center justify-center gap-3">
-    <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
-    <span className="text-xs font-medium text-slate-500">{message}</span>
+    <Loader2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 animate-spin" />
+    <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{message}</span>
   </div>
 );
 
@@ -171,12 +173,12 @@ export const ErrorState: React.FC<{ title?: string; message: string; retry?: () 
   message,
   retry,
 }) => (
-  <div className="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 space-y-3">
+  <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-900 dark:text-rose-300 space-y-3">
     <div className="flex items-center gap-2 font-bold text-xs">
-      <AlertCircle className="w-4 h-4 text-rose-600" />
+      <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
       <span>{title}</span>
     </div>
-    <p className="text-xs text-rose-700">{message}</p>
+    <p className="text-xs text-rose-700 dark:text-rose-400">{message}</p>
     {retry && (
       <Button variant="danger" size="sm" onClick={retry}>
         Try Again
@@ -193,8 +195,8 @@ export const PageHeader: React.FC<{ title: string; description: string; actions?
 }) => (
   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>
-      <p className="text-xs text-slate-500 mt-1">{description}</p>
+      <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight font-display">{title}</h1>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{description}</p>
     </div>
     {actions && <div className="flex items-center gap-3">{actions}</div>}
   </div>

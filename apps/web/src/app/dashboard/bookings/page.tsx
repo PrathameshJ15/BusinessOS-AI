@@ -53,25 +53,25 @@ export default function BookingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Smart Bookings & Staff Scheduling</h1>
-          <p className="text-xs text-slate-500 mt-1">Manage appointment calendars, staff rosters, service catalog, and Razorpay payment links.</p>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">Smart Bookings & Staff Scheduling</h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Manage appointment calendars, staff rosters, service catalog, and Razorpay payment links.</p>
         </div>
 
         <div className="flex items-center gap-3">
           {canAccess('bookings:write') ? (
             <button
               onClick={() => setIsBookingModalOpen(true)}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Book Appointment</span>
             </button>
           ) : (
-            <span className="text-xs text-slate-400 font-mono px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200">
+            <span className="text-xs text-zinc-400 font-mono px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
               Role: Restricted (Read Only)
             </span>
           )}
@@ -81,123 +81,124 @@ export default function BookingsPage() {
       {/* Service Catalog & Staff Rosters Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Service Catalog */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-900">Active Service Offerings</h3>
-            <span className="text-xs text-slate-500">{services.length} Services</span>
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Active Service Offerings</h3>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{services.length} Services</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {services.map((srv) => (
-              <div key={srv.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 hover:border-blue-300 transition-all flex flex-col justify-between">
+              <div key={srv.id} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/40 transition-all flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-slate-900">{srv.name}</span>
-                    <span className="text-xs font-bold text-blue-600">₹{srv.price}</span>
+                    <span className="text-xs font-bold text-zinc-900 dark:text-white">{srv.name}</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">₹{srv.price}</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mb-2">{srv.description}</p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">{srv.description}</p>
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-200/60">
-                  <span>Duration: {srv.durationMinutes} mins</span>
-                  <span className="text-slate-600 font-medium">{srv.category}</span>
+                <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700">
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {srv.durationMinutes} mins</span>
+                  <span className="font-mono">{srv.category}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Staff Roster */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-900">Staff Availability</h3>
-            <span className="text-xs text-emerald-600 font-bold">3 Active</span>
+        {/* Staff Members Roster */}
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Staff Roster & Capacity</h3>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{mockStaff.length} On Duty</span>
           </div>
 
-          <div className="space-y-3">
-            {mockStaff.map((stf) => (
-              <div key={stf.id} className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <img src={stf.avatarUrl} alt={stf.name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
+          <div className="space-y-2.5">
+            {mockStaff.map((staff) => (
+              <div key={staff.id} className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center">
+                    {staff.name.charAt(0)}
+                  </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900">{stf.name}</h4>
-                    <p className="text-[10px] text-slate-500">{stf.role}</p>
+                    <h4 className="text-xs font-bold text-zinc-900 dark:text-white">{staff.name}</h4>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400">{staff.role} · {staff.phone}</p>
                   </div>
                 </div>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" title="Active"></span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Bookings Queue Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-subtle overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-900">Appointments Schedule</h3>
-          <span className="text-xs text-slate-500">{bookings.length} Bookings</span>
+      {/* Appointment Schedule List */}
+      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+          <h3 className="text-base font-bold text-zinc-900 dark:text-white">Scheduled Appointments ({bookings.length})</h3>
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">Live Roster</span>
         </div>
 
-        <div className="divide-y divide-slate-100">
-          {bookings.map((bk) => (
-            <div key={bk.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-xs shrink-0">
-                  {bk.customerName.charAt(0)}
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">{bk.customerName}</h4>
-                  <p className="text-xs font-semibold text-blue-600 mt-0.5">{bk.serviceName}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Assigned Staff: {bk.staffName}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 text-xs text-slate-600">
-                <div className="text-right">
-                  <span className="font-bold text-slate-900 block">₹{bk.totalAmount}</span>
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                      bk.paymentStatus === 'PAID'
-                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                        : 'bg-amber-50 text-amber-600 border border-amber-200'
-                    }`}
-                  >
-                    {bk.paymentStatus}
-                  </span>
-                </div>
-
-                {bk.paymentStatus !== 'PAID' && (
-                  <button
-                    onClick={() => handleGeneratePaymentLink(bk.customerName, bk.totalAmount)}
-                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
-                  >
-                    <CreditCard className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Issue Razorpay Link</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-400 uppercase">
+                <th className="py-3 px-4">Client</th>
+                <th className="py-3 px-4">Service</th>
+                <th className="py-3 px-4">Staff Member</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Amount</th>
+                <th className="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {bookings.map((bk) => (
+                <tr key={bk.id} className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/60 transition-colors">
+                  <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-white">
+                    {bk.customerName}
+                    <span className="block text-[10px] text-zinc-400 font-normal">{bk.customerPhone}</span>
+                  </td>
+                  <td className="py-3 px-4 font-medium text-zinc-700 dark:text-zinc-300">{bk.serviceName}</td>
+                  <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400">{bk.staffName}</td>
+                  <td className="py-3 px-4">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                      {bk.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-display">₹{bk.totalAmount}</td>
+                  <td className="py-3 px-4 text-right">
+                    <button
+                      onClick={() => handleGeneratePaymentLink(bk.customerName, bk.totalAmount)}
+                      className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-lg text-[10px] font-bold transition-all border border-zinc-200 dark:border-zinc-700"
+                    >
+                      Issue Payment Link
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Book Appointment Modal */}
+      {/* Booking Modal */}
       {isBookingModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 border border-slate-200">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-              <h3 className="text-base font-bold text-slate-900">Schedule Appointment</h3>
-              <button onClick={() => setIsBookingModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-white">Schedule New Appointment</h3>
+              <button onClick={() => setIsBookingModalOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-white">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleBookingSubmit} className="space-y-4">
+            <form onSubmit={handleBookingSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Select Customer</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Select Customer</label>
                 <select
                   value={selectedCustomerId}
                   onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                 >
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -208,43 +209,54 @@ export default function BookingsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Select Service</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Select Service Offering</label>
                 <select
                   value={selectedServiceId}
                   onChange={(e) => setSelectedServiceId(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                 >
                   {services.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name} (₹{s.price})
+                      {s.name} — ₹{s.price} ({s.durationMinutes} mins)
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Assign Specialist Staff</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Assigned Staff Member</label>
                 <select
                   value={selectedStaffId}
                   onChange={(e) => setSelectedStaffId(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                 >
-                  {mockStaff.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.role})
+                  {mockStaff.map((stf) => (
+                    <option key={stf.id} value={stf.id}>
+                      {stf.name} ({stf.role})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Notes / Special Requests</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Appointment Slot Time</label>
                 <input
                   type="text"
-                  placeholder="e.g. Sensitive skin organic lotion requested"
+                  value={bookingTime}
+                  onChange={(e) => setBookingTime(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  placeholder="e.g. Tomorrow 3:00 PM"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Special Client Notes</label>
+                <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  rows={2}
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  placeholder="Add specific preferences or instructions..."
                 />
               </div>
 
@@ -252,13 +264,13 @@ export default function BookingsPage() {
                 <button
                   type="button"
                   onClick={() => setIsBookingModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md"
                 >
                   Confirm Booking
                 </button>

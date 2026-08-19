@@ -1,37 +1,34 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    '../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
     '../../packages/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: '#0F172A',
-          foreground: '#F8FAFC',
-        },
         accent: {
-          DEFAULT: '#3B82F6',
-          hover: '#2563EB',
-          light: '#EFF6FF',
-          foreground: '#FFFFFF',
+          DEFAULT: '#059669', // Emerald
+          hover: '#047857',
+          light: '#D1FAE5',
+          subtle: '#ECFDF5',
+          dark: '#065F46',
         },
-        background: '#F8FAFC',
-        dark: '#020617',
-        borderSubtle: '#E2E8F0',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Outfit', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-body)', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        devanagari: ['var(--font-devanagari)', 'Noto Sans Devanagari', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        subtle: '0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.02)',
-        card: '0 4px 20px -2px rgba(15, 23, 42, 0.05)',
-        glass: '0 8px 32px 0 rgba(15, 23, 42, 0.08)',
-      },
-      borderRadius: {
-        '2xl': '1rem',
-        '3xl': '1.5rem',
+        subtle: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+        card: '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03)',
+        elevated: '0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03)',
       },
     },
   },

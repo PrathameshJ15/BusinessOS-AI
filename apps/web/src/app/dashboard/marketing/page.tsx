@@ -35,24 +35,26 @@ import {
 export default function MarketingWorkspacePage() {
   const { campaigns, reviews, customers, addCampaign, replyToReview, canAccess, addToast } = useApp();
 
-  // Navigation Sub-Tabs
   const [activeTab, setActiveTab] = useState<
     'overview' | 'campaigns' | 'whatsapp' | 'email' | 'social' | 'reviews' | 'aicontent'
   >('overview');
 
-  // Create Campaign Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [channel, setChannel] = useState<'WHATSAPP' | 'SMS' | 'EMAIL'>('WHATSAPP');
   const [targetAudience, setTargetAudience] = useState<
-    'INACTIVE_30_DAYS' | 'VIP_CUSTOMERS' | 'NEW_LEADS' | 'NOT_BOOKED_RECENTLY'
+    'ALL' | 'INACTIVE_30_DAYS' | 'VIP_CUSTOMERS' | 'NEW_LEADS'
   >('INACTIVE_30_DAYS');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [ctaText, setCtaText] = useState('Book Appointment');
   const [scheduleTime, setScheduleTime] = useState('IMMEDIATE');
 
-  // AI Prompt Helper inside modal
+  const [aiContentType, setAiContentType] = useState<'INSTAGRAM' | 'WHATSAPP' | 'GOOGLE_POST'>('INSTAGRAM');
+  const [aiPromptTopic, setAiPromptTopic] = useState('');
+  const [generatedAiOutput, setGeneratedAiOutput] = useState('');
+  const [reviewReplyInputs, setReviewReplyInputs] = useState<{ [key: string]: string }>({});
+
   const handleAiGenerateCampaign = (promptType: 'weekend' | 'diwali' | 'reactivation') => {
     if (promptType === 'weekend') {
       setName('Weekend Radiance 20% Off');
@@ -71,7 +73,7 @@ export default function MarketingWorkspacePage() {
     } else {
       setName('Re-engage Inactive Clients');
       setChannel('WHATSAPP');
-      setTargetAudience('NOT_BOOKED_RECENTLY');
+      setTargetAudience('INACTIVE_30_DAYS');
       setSubject('We Miss You at Lumina Luxe!');
       setContent('Hi {{name}}, it has been over 60 days since your last visit! We saved a special ₹500 voucher for your next haircut or spa treatment.');
       setCtaText('Use ₹500 Voucher');
@@ -79,172 +81,131 @@ export default function MarketingWorkspacePage() {
     addToast({ type: 'info', title: 'AI Copy Generated', message: 'Structured campaign copy created.' });
   };
 
-  const handleCreateCampaignSubmit = (e: React.FormEvent) => {
+  const handleCampaignSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !content) return;
 
     addCampaign({
       name,
       channel,
-      targetAudience: targetAudience as any,
+      targetAudience,
       subject,
       content,
     });
 
-    setIsCreateModalOpen(false);
     setName('');
     setContent('');
     setSubject('');
+    setIsCreateModalOpen(false);
   };
 
-  // Social Post Generator State
-  const [socialPlatform, setSocialPlatform] = useState<'instagram' | 'facebook' | 'linkedin'>('instagram');
-  const [socialTopic, setSocialTopic] = useState('Hydra-Facial Glow Benefits');
-  const [socialPostOutput, setSocialPostOutput] = useState(
-    ' ✨ Discover the secret to luminous skin! Our Signature Hydra-Facial deeply cleanses, hydrates, and restores natural radiance. Book your session today at Lumina Luxe Spa. #HydraFacial #Skincare #HyderabadSpa #LuminaLuxe'
-  );
-  const [copiedSocial, setCopiedSocial] = useState(false);
-
-  const handleGenerateSocialPost = () => {
-    if (socialPlatform === 'instagram') {
-      setSocialPostOutput(
-        ` ✨ Elevate your weekend wellness with ${socialTopic}! Tag a friend who needs a spa day below 👇 Book via link in bio! #SelfCare #SpaDay #${socialTopic.replace(/\s+/g, '')}`
-      );
-    } else if (socialPlatform === 'facebook') {
-      setSocialPostOutput(
-        ` 🌸 Weekend Special Announcement: Experience ${socialTopic} at Lumina Luxe. Enjoy complimentary botanical tea and relaxation therapies with every booking. Click below to reserve your slot!`
-      );
-    } else {
-      setSocialPostOutput(
-        `Executives and professionals: Prioritizing wellness is key to peak performance. Our ${socialTopic} is designed for deep rejuvenation. Learn more about our business corporate packages.`
-      );
-    }
-    addToast({ type: 'info', title: 'Social Post Created', message: `Drafted ${socialPlatform.toUpperCase()} post copy.` });
+  const handleGenerateSocialCopy = () => {
+    if (!aiPromptTopic) return;
+    setGeneratedAiOutput(
+      `✨ ${aiPromptTopic.toUpperCase()} ✨\n\nExperience luxury wellness tailored just for you. Our expert therapists at Lumina Luxe Spa bring you rejuvenation like never before.\n\n👉 Book your appointment today via link in bio or WhatsApp us!\n\n#LuminaLuxe #SpaWellness #SelfCare #SalonLuxury #SaarthiAI`
+    );
+    addToast({ type: 'success', title: 'Social Content Drafted', message: 'Generated AI post copy.' });
   };
 
-  // Reviews AI Reply Draft State
-  const [reviewDrafts, setReviewDrafts] = useState<Record<string, string>>({});
-
-  const handleDraftReviewReply = (rev: Review) => {
-    const draftText = rev.aiSuggestedResponse || `Thank you so much ${rev.authorName} for your wonderful ${rev.rating}-star review! We look forward to welcoming you back to Lumina Luxe soon.`;
-    setReviewDrafts((prev) => ({ ...prev, [rev.id]: draftText }));
+  const handlePostReviewReply = (reviewId: string) => {
+    const text = reviewReplyInputs[reviewId] || 'Thank you for visiting Lumina Luxe Spa! We look forward to serving you again soon.';
+    replyToReview(reviewId, text);
   };
 
-  const handleApproveReviewReply = (reviewId: string) => {
-    const draftText = reviewDrafts[reviewId];
-    if (!draftText) return;
-    replyToReview(reviewId, draftText);
-    setReviewDrafts((prev) => {
-      const copy = { ...prev };
-      delete copy[reviewId];
-      return copy;
-    });
-  };
+  const totalDelivered = campaigns.reduce((acc, c) => acc + c.deliveredCount, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Marketing & Broadcast Automation</h1>
-          <p className="text-xs text-slate-500 mt-1">Multi-channel campaigns, WhatsApp adapters, AI social copywriter, and Google reviews manager.</p>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">Marketing & Growth Automation</h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Deploy multi-channel broadcasts, AI copy generators, WhatsApp campaigns, and Google review management.</p>
         </div>
 
         <div className="flex items-center gap-3">
           {canAccess('marketing:write') ? (
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>Create Campaign</span>
             </button>
           ) : (
-            <span className="text-xs text-slate-400 font-mono px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200">
+            <span className="text-xs text-zinc-400 font-mono px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
               Role: Restricted (Read Only)
             </span>
           )}
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
-      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-subtle flex flex-wrap gap-1">
+      {/* Tabs Navigation Bar */}
+      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-wrap gap-2">
         {[
-          { id: 'overview', label: 'Overview' },
-          { id: 'campaigns', label: `Campaigns (${campaigns.length})` },
-          { id: 'whatsapp', label: 'WhatsApp Adapter' },
-          { id: 'email', label: 'Email Broadcasts' },
-          { id: 'social', label: 'AI Social Post' },
-          { id: 'reviews', label: `Reviews (${reviews.length})` },
-          { id: 'aicontent', label: 'AI Copy Playground' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
-              activeTab === tab.id
-                ? 'bg-slate-900 text-white shadow'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+          { id: 'overview', label: 'Performance Overview', icon: BarChart3 },
+          { id: 'campaigns', label: 'Campaign Broadcasts', icon: Megaphone },
+          { id: 'social', label: 'AI Social Post Drafts', icon: Share2 },
+          { id: 'reviews', label: 'Google Business Reviews', icon: Star },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+                activeTab === tab.id
+                  ? 'bg-zinc-900 dark:bg-zinc-800 text-white shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* OVERVIEW TAB */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Total Campaigns</span>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{campaigns.length}</p>
-              <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <TrendingUp className="w-3.5 h-3.5" /> +2 new this month
-              </span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+              <span className="text-[10px] text-zinc-400 uppercase font-mono">Total Messages Broadcast</span>
+              <p className="text-2xl font-display font-bold text-zinc-900 dark:text-white">{totalDelivered} Delivered</p>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">100% WhatsApp Delivery Rate</span>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Messages Delivered</span>
-              <p className="text-2xl font-bold text-slate-900 mt-1">
-                {campaigns.reduce((acc, c) => acc + c.deliveredCount, 0)}
-              </p>
-              <span className="text-[11px] text-slate-400 mt-1 block">WhatsApp & SMS Channels</span>
+            <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+              <span className="text-[10px] text-zinc-400 uppercase font-mono">Campaign Conversion</span>
+              <p className="text-2xl font-display font-bold text-emerald-600 dark:text-emerald-400 font-display">64% Open & Click Rate</p>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold block">Industry benchmark: 45%</span>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Avg Open Rate</span>
-              <p className="text-2xl font-bold text-slate-900 mt-1">78.4%</p>
-              <span className="text-[11px] text-blue-600 font-semibold mt-1 block">Industry benchmark: 45%</span>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-subtle">
-              <span className="text-xs font-medium text-slate-500 uppercase">Attributed Revenue</span>
-              <p className="text-2xl font-bold text-slate-900 mt-1">₹18,400</p>
-              <span className="text-[11px] text-emerald-600 font-semibold mt-1 block">19 booking conversions</span>
+            <div className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+              <span className="text-[10px] text-zinc-400 uppercase font-mono">Reputation Score</span>
+              <p className="text-2xl font-display font-bold text-amber-500 font-display">4.9 ★ Rating</p>
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block">{reviews.length} Verified Reviews</span>
             </div>
           </div>
 
-          {/* AI Recommendation Insight */}
-          <div className="bg-slate-900 p-6 rounded-3xl text-white border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-zinc-900 text-white p-6 rounded-2xl border border-zinc-800 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Re-engage 14 Inactive Clients This Weekend</h3>
-                <p className="text-xs text-slate-400 mt-1 max-w-xl">
-                  Sending an automated WhatsApp flash offer to clients who haven't visited in 30+ days is projected to generate ₹12,500 in additional sales.
+                <h3 className="text-sm font-bold text-white">AI Content Co-Pilot Active</h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Generate social media posts, WhatsApp offer copy, and automated review responses with pre-trained Indian business templates.
                 </p>
               </div>
             </div>
-
             <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 shrink-0"
+              onClick={() => setActiveTab('social')}
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center gap-2 shrink-0"
             >
-              <span>Broadcast Offer Campaign</span>
-              <Send className="w-3.5 h-3.5" />
+              <span>Draft AI Social Post</span>
             </button>
           </div>
         </div>
@@ -252,47 +213,39 @@ export default function MarketingWorkspacePage() {
 
       {/* CAMPAIGNS TAB */}
       {activeTab === 'campaigns' && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-subtle overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900">Campaign History & Scheduled Broadcasts</h3>
-            <span className="text-xs text-slate-500">{campaigns.length} Campaigns</span>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+            <h3 className="text-base font-bold text-zinc-900 dark:text-white">Active & Past Broadcast Campaigns</h3>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono">{campaigns.length} Total Campaigns</span>
           </div>
 
-          <div className="divide-y divide-slate-100">
-            {campaigns.map((cmp) => (
-              <div key={cmp.id} className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    {cmp.channel === 'WHATSAPP' ? <MessageSquare className="w-5 h-5" /> : <Mail className="w-5 h-5" />}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-slate-900">{cmp.name}</h4>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                        {cmp.channel}
-                      </span>
+          <div className="space-y-3">
+            {campaigns.map((c) => (
+              <div key={c.id} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 font-bold text-xs">
+                      {c.channel.substring(0, 2)}
                     </div>
-                    <p className="text-xs text-slate-500 mt-1 max-w-md line-clamp-1">"{cmp.content}"</p>
-                    <p className="text-[10px] text-slate-400 mt-1">Target: {cmp.targetAudience.replace(/_/g, ' ')}</p>
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-900 dark:text-white">{c.name}</h4>
+                      <p className="text-[10px] text-zinc-400 font-mono">Target: {c.targetAudience.replace(/_/g, ' ')}</p>
+                    </div>
                   </div>
+
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                    {c.status}
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-6 text-xs text-slate-600">
-                  <div className="text-center">
-                    <span className="font-bold text-slate-900 block">{cmp.totalRecipients}</span>
-                    <span className="text-[10px] text-slate-400">Recipients</span>
-                  </div>
-                  <div className="text-center">
-                    <span className="font-bold text-slate-900 block">{cmp.openedCount}</span>
-                    <span className="text-[10px] text-slate-400">Opened</span>
-                  </div>
-                  <div className="text-center">
-                    <span className="font-bold text-emerald-600 block">{cmp.clickedCount}</span>
-                    <span className="text-[10px] text-slate-400">Clicks</span>
-                  </div>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                    {cmp.status}
-                  </span>
+                <p className="text-xs text-zinc-600 dark:text-zinc-300 italic p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                  "{c.content}"
+                </p>
+
+                <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-200 dark:border-zinc-700 font-mono">
+                  <span>Recipients: {c.totalRecipients}</span>
+                  <span>Delivered: {c.deliveredCount}</span>
+                  <span>Opened: {c.openedCount}</span>
                 </div>
               </div>
             ))}
@@ -300,326 +253,166 @@ export default function MarketingWorkspacePage() {
         </div>
       )}
 
-      {/* WHATSAPP TAB */}
-      {activeTab === 'whatsapp' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle max-w-3xl space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">WhatsApp Business Service Adapter</h3>
-              <p className="text-xs text-slate-500">Isolated messaging service interface running in simulation sandbox mode.</p>
-            </div>
-            <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-              Adapter Connected (Sandbox)
-            </span>
-          </div>
-
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
-            <span className="font-bold text-slate-900">Business Account ID: waba-7788</span>
-            <p className="text-slate-600">Phone Number: +91 98765 43210</p>
-            <p className="text-[11px] text-slate-400 font-mono">
-              Note: Messages are processed via the clean `IWhatsAppService` adapter interface. No un-verified external API calls are claimed.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* EMAIL TAB */}
-      {activeTab === 'email' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle max-w-2xl space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-100">Email Campaign Broadcast Editor</h3>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Subject Line</label>
-              <input
-                type="text"
-                placeholder="e.g. ✨ Your Exclusive August Spa Perks Inside"
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Preview Text</label>
-              <input
-                type="text"
-                placeholder="Complimentary hot oil scalp treatment with every booking"
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-              />
-            </div>
-            <button onClick={() => addToast({ type: 'success', title: 'Email Queued', message: 'Email broadcast queued for delivery.' })} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold">
-              Queue Email Broadcast
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* SOCIAL TAB */}
+      {/* SOCIAL MEDIA AI GENERATOR TAB */}
       {activeTab === 'social' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-100">AI Social Post Generator</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Platform</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'instagram', label: 'Instagram', icon: Instagram },
-                    { id: 'facebook', label: 'Facebook', icon: Facebook },
-                    { id: 'linkedin', label: 'LinkedIn', icon: Linkedin },
-                  ].map((p) => {
-                    const Icon = p.icon;
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => setSocialPlatform(p.id as any)}
-                        className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
-                          socialPlatform === p.id
-                            ? 'bg-slate-900 text-white border-slate-900'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <Icon className="w-3.5 h-3.5" />
-                        <span>{p.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Post Topic / Feature</label>
-                <input
-                  type="text"
-                  value={socialTopic}
-                  onChange={(e) => setSocialTopic(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                />
-              </div>
-
-              <button
-                onClick={handleGenerateSocialPost}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>Generate Post Copy with AI</span>
-              </button>
-            </div>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm max-w-2xl space-y-6">
+          <div className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>AI Social Post & Caption Generator</span>
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Craft high-converting social copy with hashtags tailored to salon, clinic, and local service offerings.</p>
           </div>
 
-          <div className="lg:col-span-7 bg-slate-900 p-6 rounded-3xl border border-slate-800 text-white space-y-4 flex flex-col justify-between">
+          <div className="space-y-4 text-xs">
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">{socialPlatform} Post Output</span>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(socialPostOutput);
-                    setCopiedSocial(true);
-                    setTimeout(() => setCopiedSocial(false), 2000);
-                    addToast({ type: 'info', title: 'Copied to Clipboard', message: 'Ready to paste on social platform.' });
-                  }}
-                  className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-mono"
-                >
-                  {copiedSocial ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedSocial ? 'Copied!' : 'Copy Copy'}</span>
-                </button>
-              </div>
-
-              <div className="mt-4 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-200 leading-relaxed font-sans">
-                {socialPostOutput}
+              <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Target Social Platform</label>
+              <div className="flex gap-2">
+                {(['INSTAGRAM', 'WHATSAPP', 'GOOGLE_POST'] as const).map((plat) => (
+                  <button
+                    key={plat}
+                    onClick={() => setAiContentType(plat)}
+                    className={`px-3 py-1.5 rounded-xl font-bold text-xs border ${
+                      aiContentType === plat ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
+                    }`}
+                  >
+                    {plat}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="text-[10px] text-slate-400 font-mono">Generated via Unified AI Service Layer</div>
+            <div>
+              <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Campaign Offer or Promotion Topic</label>
+              <input
+                type="text"
+                value={aiPromptTopic}
+                onChange={(e) => setAiPromptTopic(e.target.value)}
+                placeholder="e.g. Monsoon Hair Spa Offer 25% Off"
+                className="w-full text-xs p-2.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+
+            <button
+              onClick={handleGenerateSocialCopy}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Generate AI Post Draft</span>
+            </button>
+
+            {generatedAiOutput && (
+              <div className="p-4 bg-zinc-900 text-zinc-100 rounded-xl border border-zinc-800 space-y-2">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{aiContentType} Post Output</span>
+                <p className="text-xs whitespace-pre-wrap font-sans leading-relaxed text-zinc-300">{generatedAiOutput}</p>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* REVIEWS TAB */}
       {activeTab === 'reviews' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-900">Google Business Reviews Management</h3>
-            <span className="text-xs text-slate-500">{reviews.length} Reviews Synchronized</span>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+            <h3 className="text-base font-bold text-zinc-900 dark:text-white">Google Business Reviews ({reviews.length})</h3>
+            <span className="text-xs text-amber-500 font-bold">4.9 ★ Rating</span>
           </div>
 
           <div className="space-y-4">
-            {reviews.map((r) => {
-              const draftReply = reviewDrafts[r.id];
-              return (
-                <div key={r.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-900">{r.authorName}</span>
-                      <div className="flex items-center text-amber-500 text-xs">
-                        {'★'.repeat(r.rating)}
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-mono">{r.platform}</span>
+            {reviews.map((r) => (
+              <div key={r.id} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-zinc-900 dark:text-white">{r.authorName}</span>
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(r.rating)].map((_, i) => (
+                      <Star key={i} className="w-3 h-3 fill-amber-400" />
+                    ))}
                   </div>
-
-                  <p className="text-xs text-slate-700">"{r.content}"</p>
-
-                  {/* Active Response vs Draft AI Review Reply */}
-                  {r.responseText ? (
-                    <div className="p-3 rounded-lg bg-blue-50/80 border border-blue-100 text-xs text-blue-900">
-                      <span className="font-bold text-blue-700">Published Response: </span>"{r.responseText}"
-                    </div>
-                  ) : draftReply ? (
-                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-2">
-                      <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                        AI Response Draft (Review Before Posting)
-                      </span>
-                      <textarea
-                        rows={2}
-                        value={draftReply}
-                        onChange={(e) => setReviewDrafts({ ...reviewDrafts, [r.id]: e.target.value })}
-                        className="w-full text-xs p-2 bg-white border border-amber-200 rounded-lg focus:outline-none"
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleApproveReviewReply(r.id)}
-                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow"
-                        >
-                          Approve & Publish Reply
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleDraftReviewReply(r)}
-                      className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Draft AI Reply</span>
-                    </button>
-                  )}
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
-      {/* AI COPY PLAYGROUND TAB */}
-      {activeTab === 'aicontent' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-subtle max-w-2xl space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 pb-3 border-b border-slate-100">AI Copywriting Generator</h3>
-          <p className="text-xs text-slate-500">Generate promotional email headlines, SMS offers, and push messages.</p>
-          <div className="space-y-3">
-            <button
-              onClick={() => handleAiGenerateCampaign('weekend')}
-              className="w-full p-3 text-left rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-between"
-            >
-              <span>Generate Weekend Offer Campaign Copy</span>
-              <Sparkles className="w-4 h-4 text-blue-600" />
-            </button>
-            <button
-              onClick={() => handleAiGenerateCampaign('diwali')}
-              className="w-full p-3 text-left rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-between"
-            >
-              <span>Generate Diwali Festive Promotion</span>
-              <Sparkles className="w-4 h-4 text-blue-600" />
-            </button>
+                <p className="text-xs text-zinc-600 dark:text-zinc-300">"{r.content}"</p>
+
+                {r.responseText ? (
+                  <div className="p-3 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-300">
+                    <span className="font-bold text-emerald-700 dark:text-emerald-400">Published Response: </span>"{r.responseText}"
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 pt-2">
+                    <input
+                      type="text"
+                      placeholder="Write response or use AI..."
+                      value={reviewReplyInputs[r.id] || ''}
+                      onChange={(e) => setReviewReplyInputs({ ...reviewReplyInputs, [r.id]: e.target.value })}
+                      className="flex-1 text-xs p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100"
+                    />
+                    <button
+                      onClick={() => handlePostReviewReply(r.id)}
+                      className="px-3 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500"
+                    >
+                      Post Reply
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* CREATE CAMPAIGN MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Create Marketing Campaign</h3>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-white">Create Broadcast Campaign</h3>
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-white">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* AI Shortcut Chips */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">AI Templates:</span>
-              <button
-                type="button"
-                onClick={() => handleAiGenerateCampaign('weekend')}
-                className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-bold whitespace-nowrap"
-              >
-                Weekend Offer
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAiGenerateCampaign('diwali')}
-                className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-lg text-[10px] font-bold whitespace-nowrap"
-              >
-                Diwali Promo
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAiGenerateCampaign('reactivation')}
-                className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg text-[10px] font-bold whitespace-nowrap"
-              >
-                Reactivation
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateCampaignSubmit} className="space-y-3">
+            <form onSubmit={handleCampaignSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Campaign Name</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Campaign Name</label>
                 <input
                   type="text"
-                  placeholder="e.g. Weekend Flash Sale"
+                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  placeholder="e.g. Weekend Flash Offer"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Channel</label>
-                  <select
-                    value={channel}
-                    onChange={(e) => setChannel(e.target.value as any)}
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                  >
-                    <option value="WHATSAPP">WhatsApp Business</option>
-                    <option value="SMS">Direct SMS</option>
-                    <option value="EMAIL">Email Broadcast</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Target Segment</label>
-                  <select
-                    value={targetAudience}
-                    onChange={(e) => setTargetAudience(e.target.value as any)}
-                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
-                  >
-                    <option value="INACTIVE_30_DAYS">Inactive Clients (30+ Days)</option>
-                    <option value="VIP_CUSTOMERS">VIP High Value</option>
-                    <option value="NEW_LEADS">New Leads</option>
-                    <option value="NOT_BOOKED_RECENTLY">Not Booked Recently</option>
-                  </select>
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">AI Prompt Templates</label>
+                <div className="flex flex-wrap gap-1.5">
+                  <button type="button" onClick={() => handleAiGenerateCampaign('weekend')} className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[10px] font-bold">
+                    Weekend Special
+                  </button>
+                  <button type="button" onClick={() => handleAiGenerateCampaign('reactivation')} className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[10px] font-bold">
+                    Inactive Client Offer
+                  </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Message Content</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Message Content</label>
                 <textarea
                   rows={3}
+                  required
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"
+                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+                  placeholder="Enter message text..."
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
-                >
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl">
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
+                <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
                   <Send className="w-3.5 h-3.5" />
                   <span>Send Broadcast</span>
                 </button>
