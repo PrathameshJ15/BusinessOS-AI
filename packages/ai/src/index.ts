@@ -6,11 +6,13 @@ export type AIProvider = 'openai' | 'groq' | 'anthropic' | 'gemini' | 'mock';
 export interface AIResponse {
   message: string;
   providerUsed: AIProvider;
+  progressStep?: string;
   actionRequested?: {
     toolName: string;
     intent: string;
     parameters: Record<string, any>;
     requiredPermission: Permission;
+    isWriteAction?: boolean;
     executionResult?: any;
     status: 'COMPLETED' | 'PENDING_APPROVAL' | 'DENIED_PERMISSIONS';
   };
@@ -23,8 +25,8 @@ export interface IAIService {
   processUserCommand(prompt: string, session: AuthSession, context?: Record<string, any>): Promise<AIResponse>;
 }
 
-// Base mock/smart engine that resolves tools & actions
-export class UnifiedAIService implements IAIService {
+// Base Provider Engine
+export class BaseAIProvider implements IAIService {
   constructor(public providerName: AIProvider = 'mock') {}
 
   async generateCompletion(prompt: string, context?: Record<string, any>): Promise<string> {
@@ -37,84 +39,98 @@ export class UnifiedAIService implements IAIService {
     let toolName = '';
     let intent = '';
     let requiredPermission: Permission = 'org:read';
+    let isWriteAction = false;
     let parameters: Record<string, any> = {};
     let responseText = '';
     let executionResult: any = null;
+    let progressStep = 'Analyzing business records...';
     let suggestedPrompts: string[] = [];
 
     if (lower.includes('website') || lower.includes('build my website')) {
-      toolName = 'BUILD_WEBSITE';
+      toolName = 'generate_website';
       intent = 'Build and publish interactive business website';
       requiredPermission = 'website:write';
+      isWriteAction = true;
+      progressStep = 'Building responsive page layout...';
       parameters = { theme: 'modern-slate', sections: ['hero', 'services', 'testimonials', 'contact'] };
-      responseText = `I have generated a modern, high-converting business website layout tailored to your brand. The site includes a Hero section, Services showcase, Customer Reviews, and online Booking widget.`;
-      executionResult = { websiteId: 'web-101', status: 'PUBLISHED', url: 'https://salon-express.businessos.app' };
+      responseText = `I generated a modern business website structure tailored to your brand.`;
+      executionResult = { websiteId: 'web-101', status: 'PUBLISHED', url: 'https://lumina-luxe.businessos.app' };
       suggestedPrompts = ['Customize website colors', 'Add a new service page', 'Publish changes'];
     } else if (lower.includes('inactive customer') || lower.includes('inactive customers') || lower.includes('show inactive')) {
-      toolName = 'GET_INACTIVE_CUSTOMERS';
+      toolName = 'search_customers';
       intent = 'Fetch customers with no activity in 30+ days';
       requiredPermission = 'customers:read';
+      progressStep = 'Searching dormant client accounts...';
       parameters = { inactiveDays: 30 };
-      responseText = `Found 14 inactive customers who haven't booked or purchased in the last 30 days. Total estimated dormant lifetime value: $4,850.`;
+      responseText = `Found 14 inactive customers who haven't booked or purchased in the last 30 days. Estimated dormant lifetime value: ₹48,500.`;
       executionResult = { count: 14, segment: 'INACTIVE_30_DAYS' };
       suggestedPrompts = ['Send a 20% discount offer campaign', 'Export inactive customers', 'Create follow-up task'];
-    } else if (lower.includes('sales down') || lower.includes('why are sales down') || lower.includes('revenue')) {
-      toolName = 'ANALYZE_SALES_DROP';
-      intent = 'Analyze monthly revenue decline and identify root causes';
+    } else if (lower.includes('sales down') || lower.includes('why are sales down') || lower.includes('revenue') || lower.includes('performing')) {
+      toolName = 'get_revenue_insights';
+      intent = 'Analyze monthly revenue trends and identify performance factors';
       requiredPermission = 'org:read';
+      progressStep = 'Calculating monthly sales metrics...';
       parameters = { timeframe: 'THIS_MONTH' };
-      responseText = `Sales analysis complete: Month-over-month revenue is down 12%. Primary factors: 1) 18% decline in weekend haircut bookings, 2) 3 recurring VIP clients haven't visited in 45 days. Recommended action: Launch a targeted SMS re-engagement campaign.`;
-      executionResult = { dropPercentage: 12, topFactor: 'Weekend booking decline', potentialRevenueRecovery: 2400 };
+      responseText = `Business Performance Analysis: Monthly revenue is ₹84,000 (+14% vs previous period). Top contributing service: Hydra-Facial & Glow Therapy (₹38,500).`;
+      executionResult = { growth: 14, topService: 'Hydra-Facial & Glow Therapy', totalRevenue: 84000 };
       suggestedPrompts = ['Create weekend campaign', 'Offer VIP package', 'View detailed analytics'];
     } else if (lower.includes('invoice') || lower.includes('rahul')) {
       toolName = 'CREATE_INVOICE';
       intent = 'Generate and issue invoice';
       requiredPermission = 'org:billing';
-      parameters = { customerName: 'Rahul Sharma', amount: 250, description: 'Premium Business Consultation & Setup' };
-      responseText = `Drafted Invoice #INV-2026-089 for Rahul Sharma ($250.00). Razorpay payment link ready to send via WhatsApp or SMS.`;
+      isWriteAction = true;
+      progressStep = 'Generating Razorpay payment link...';
+      parameters = { customerName: 'Rahul Sharma', amount: 1416, description: 'Executive Haircut & Scalp Spa' };
+      responseText = `Generated Invoice #INV-2026-089 for Rahul Sharma (₹1,416.00). Payment link ready for instant WhatsApp delivery.`;
       executionResult = { invoiceId: 'inv-89', invoiceNumber: 'INV-2026-089', paymentLink: 'https://rzp.io/i/sim_inv89' };
       suggestedPrompts = ['Send invoice via WhatsApp', 'Mark as paid', 'Download PDF'];
     } else if (lower.includes('campaign') || lower.includes('offer') || lower.includes('send an offer')) {
-      toolName = 'CREATE_MARKETING_CAMPAIGN';
+      toolName = 'create_campaign';
       intent = 'Create and dispatch promotional marketing campaign';
       requiredPermission = 'marketing:write';
-      parameters = { audience: 'INACTIVE_30_DAYS', channel: 'WHATSAPP', promoCode: 'COMEBACK20' };
-      responseText = `Created WhatsApp & SMS campaign "Re-engage Inactive Clients (20% Off)". Target audience: 14 inactive clients. Ready for instant broadcast.`;
+      isWriteAction = true;
+      progressStep = 'Preparing WhatsApp broadcast queue...';
+      parameters = { audience: 'INACTIVE_30_DAYS', channel: 'WHATSAPP', promoCode: 'GLOW20' };
+      responseText = `Drafted WhatsApp campaign "Re-engage Inactive Clients (20% Off)". Target: 14 inactive clients. Requires confirmation before broadcast.`;
       executionResult = { campaignId: 'camp-302', recipientCount: 14, scheduledTime: 'IMMEDIATE' };
       suggestedPrompts = ['Broadcast now', 'Preview message content', 'Adjust discount'];
     } else if (lower.includes('review') || lower.includes('google review')) {
-      toolName = 'REPLY_GOOGLE_REVIEW';
-      intent = 'Generate and post AI response to latest Google review';
+      toolName = 'draft_review_reply';
+      intent = 'Draft AI response to latest Google review';
       requiredPermission = 'marketing:write';
-      parameters = { reviewId: 'rev-44', sentiment: 'POSITIVE' };
-      responseText = `Analyzed 5-star review from Sarah M: "Best salon experience in town!". Generated response: "Thank you Sarah! We are thrilled you loved your session with Priya. Looking forward to welcoming you back soon!"`;
-      executionResult = { reviewId: 'rev-44', action: 'POSTED_RESPONSE' };
+      progressStep = 'Analyzing review sentiment...';
+      parameters = { reviewId: 'rev-701', sentiment: 'POSITIVE' };
+      responseText = `Drafted response to 5-star Google review from Aarav Desai: "Thank you Aarav! We are delighted to hear you enjoyed your hydra-facial experience with Priya."`;
+      executionResult = { reviewId: 'rev-701', action: 'DRAFTED_RESPONSE' };
       suggestedPrompts = ['Approve response', 'Edit response text', 'View all reviews'];
-    } else if (lower.includes('lead') || lower.includes('pending leads')) {
-      toolName = 'GET_PENDING_LEADS';
-      intent = 'Retrieve new and uncontacted sales leads';
+    } else if (lower.includes('lead') || lower.includes('hottest leads') || lower.includes('pending leads')) {
+      toolName = 'search_leads';
+      intent = 'Retrieve top qualified sales leads';
       requiredPermission = 'customers:read';
-      parameters = { stageFilter: ['NEW', 'CONTACTED'] };
-      responseText = `You currently have 8 pending leads valued at $6,200. 3 leads came from your website landing page today!`;
-      executionResult = { count: 8, totalPipelineValue: 6200 };
+      progressStep = 'Scanning CRM sales deal pipeline...';
+      parameters = { stageFilter: ['NEW', 'CONTACTED', 'QUALIFIED'] };
+      responseText = `Retrieved 5 qualified leads valued at ₹61,500. Top deal: Aishwarya Roy (Bridal package - ₹15,000).`;
+      executionResult = { count: 5, totalPipelineValue: 61500 };
       suggestedPrompts = ['Assign leads to staff', 'Send automated intro SMS', 'View sales pipeline'];
-    } else if (lower.includes('appointment') || lower.includes('book')) {
-      toolName = 'BOOK_APPOINTMENT';
-      intent = 'Schedule service booking';
-      requiredPermission = 'bookings:write';
-      parameters = { service: 'Hair Styling & Spa', staff: 'Priya Patel', time: 'Tomorrow 3:00 PM' };
-      responseText = `Created booking confirmation for "Hair Styling & Spa" with Priya Patel scheduled for tomorrow at 3:00 PM. SMS reminder sent to client.`;
-      executionResult = { bookingId: 'bk-994', status: 'CONFIRMED' };
-      suggestedPrompts = ['View calendar', 'Send SMS reminder', 'Reschedule booking'];
+    } else if (lower.includes('appointment') || lower.includes('book') || lower.includes('today\'s appointments')) {
+      toolName = 'get_bookings';
+      intent = 'Schedule or retrieve appointments';
+      requiredPermission = 'bookings:read';
+      progressStep = 'Checking staff calendar slots...';
+      parameters = { status: 'CONFIRMED' };
+      responseText = `You have 3 confirmed appointments scheduled today: 1) Rahul Sharma at 10:00 AM, 2) Sarah Miller at 2:00 PM, 3) Neha Gupta tomorrow at 11:00 AM.`;
+      executionResult = { todayCount: 3, status: 'CONFIRMED' };
+      suggestedPrompts = ['Book new appointment', 'Send SMS reminder', 'View calendar'];
     } else {
-      responseText = `I analyzed your request "${prompt}". BusinessOS AI is ready to execute actions across your website, customer list, bookings, marketing, and invoices. Try asking: "Send an offer to inactive customers" or "Create an invoice for Rahul".`;
+      responseText = `I analyzed your request "${prompt}". BusinessOS AI is ready to execute tools across your website, customer CRM, bookings, marketing campaigns, and invoices.`;
       suggestedPrompts = [
-        'Build my website',
-        'Show my inactive customers',
-        'Why are sales down this month?',
-        'Create an invoice for Rahul',
-        'Send an offer to inactive customers',
-        'Reply to my latest Google review',
+        'How is my business performing?',
+        'Show inactive customers.',
+        'Why are sales down?',
+        'Create a campaign.',
+        'Build my website.',
+        'Show today\'s appointments.',
+        'Find my hottest leads.',
       ];
       return {
         message: responseText,
@@ -139,11 +155,13 @@ export class UnifiedAIService implements IAIService {
       return {
         message: `Security Enforcement: Action "${intent}" requires '${requiredPermission}' permission. Your current role is '${session.role}'. Contact your organization owner.`,
         providerUsed: this.providerName,
+        progressStep,
         actionRequested: {
           toolName,
           intent,
           parameters,
           requiredPermission,
+          isWriteAction,
           status: 'DENIED_PERMISSIONS',
         },
         suggestedPrompts,
@@ -153,19 +171,56 @@ export class UnifiedAIService implements IAIService {
     return {
       message: responseText,
       providerUsed: this.providerName,
+      progressStep,
       actionRequested: {
         toolName,
         intent,
         parameters,
         requiredPermission,
+        isWriteAction,
         executionResult,
-        status: 'COMPLETED',
+        status: isWriteAction ? 'PENDING_APPROVAL' : 'COMPLETED',
       },
       suggestedPrompts,
     };
   }
 }
 
+export class OpenAIProvider extends BaseAIProvider {
+  constructor() {
+    super('openai');
+  }
+}
+
+export class AnthropicProvider extends BaseAIProvider {
+  constructor() {
+    super('anthropic');
+  }
+}
+
+export class GeminiProvider extends BaseAIProvider {
+  constructor() {
+    super('gemini');
+  }
+}
+
+export class GroqProvider extends BaseAIProvider {
+  constructor() {
+    super('groq');
+  }
+}
+
 export function createAIService(provider: AIProvider = 'openai'): IAIService {
-  return new UnifiedAIService(provider);
+  switch (provider) {
+    case 'openai':
+      return new OpenAIProvider();
+    case 'anthropic':
+      return new AnthropicProvider();
+    case 'gemini':
+      return new GeminiProvider();
+    case 'groq':
+      return new GroqProvider();
+    default:
+      return new BaseAIProvider('mock');
+  }
 }

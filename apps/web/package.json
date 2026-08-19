@@ -10,19 +10,23 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@businessos/shared": "*",
-    "@businessos/auth": "*",
     "@businessos/ai": "*",
+    "@businessos/auth": "*",
     "@businessos/database": "*",
+    "@businessos/shared": "*",
     "@businessos/ui": "*",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@types/three": "^0.164.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.2.4",
+    "lucide-react": "^0.378.0",
     "next": "^14.2.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.378.0",
-    "framer-motion": "^11.2.4",
     "recharts": "^2.12.7",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.3.0"
+    "tailwind-merge": "^2.3.0",
+    "three": "^0.164.1"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",

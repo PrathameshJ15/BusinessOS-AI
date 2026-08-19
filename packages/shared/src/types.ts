@@ -221,7 +221,7 @@ export interface Review {
 
 export interface WebsiteBlock {
   id: string;
-  type: 'HERO' | 'SERVICES' | 'TESTIMONIALS' | 'CTA' | 'CONTACT' | 'FEATURES' | 'GALLERY' | 'PRICING';
+  type: 'HERO' | 'SERVICES' | 'TESTIMONIALS' | 'CTA' | 'CONTACT' | 'FEATURES' | 'GALLERY' | 'PRICING' | 'FAQ' | 'FOOTER';
   title: string;
   subtitle?: string;
   content: Record<string, any>;

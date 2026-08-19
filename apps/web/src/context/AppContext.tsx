@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthSession, ROLE_PERMISSIONS, hasPermission } from '@businessos/auth';
 import {
   Booking,
@@ -47,6 +47,10 @@ interface AppContextType {
   setRole: (role: Role) => void;
   canAccess: (permission: Permission) => boolean;
 
+  // Dark Mode Theme
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+
   // Domain State
   customers: Customer[];
   leads: Lead[];
@@ -81,6 +85,8 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
   const [session, setSession] = useState<AuthSession>({
     userId: 'usr-1',
     userName: 'Ananya Verma',
@@ -102,6 +108,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activities, setActivities] = useState<CustomerActivity[]>(mockCustomerActivities);
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
   const [toasts, setToasts] = useState<Toast[]>([]);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    addToast({ type: 'info', title: 'Theme Switched', message: `Active theme changed to ${nextTheme.toUpperCase()} mode.` });
+  };
 
   const setRole = (role: Role) => {
     setSession((prev) => ({ ...prev, role }));
@@ -146,7 +166,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setCustomers((prev) => [newCust, ...prev]);
 
-    // Log Activity
     const act: CustomerActivity = {
       id: `act-${Date.now()}`,
       organizationId: session.organizationId,
@@ -183,7 +202,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setBookings((prev) => [newBooking, ...prev]);
 
-    // Log activity
     const act: CustomerActivity = {
       id: `act-${Date.now()}`,
       organizationId: session.organizationId,
@@ -266,7 +284,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setInvoices((prev) => [inv, ...prev]);
 
-    // Log Activity
     const act: CustomerActivity = {
       id: `act-${Date.now()}`,
       organizationId: session.organizationId,
@@ -327,6 +344,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         session,
         setRole,
         canAccess,
+        theme,
+        toggleTheme,
         customers,
         leads,
         bookings,
