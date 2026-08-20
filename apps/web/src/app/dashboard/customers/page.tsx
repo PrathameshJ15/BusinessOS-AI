@@ -32,6 +32,7 @@ import {
   UserCheck,
   Briefcase,
   SlidersHorizontal,
+  Loader2,
 } from 'lucide-react';
 import { mockStaff } from '@businessos/database';
 
@@ -67,6 +68,7 @@ export default function CustomerWorkspacePage() {
 
   // Add Customer Modal
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+  const [isSubmittingCustomer, setIsSubmittingCustomer] = useState(false);
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -112,21 +114,26 @@ export default function CustomerWorkspacePage() {
     }
   };
 
-  const handleAddCustomerSubmit = (e: React.FormEvent) => {
+  const handleAddCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newPhone) return;
 
-    addCustomer({
-      name: newName,
-      phone: newPhone,
-      email: newEmail || 'client@example.com',
-      tags: [newTag],
-    });
+    setIsSubmittingCustomer(true);
+    try {
+      await addCustomer({
+        name: newName,
+        phone: newPhone,
+        email: newEmail || 'client@example.com',
+        tags: [newTag],
+      });
 
-    setNewName('');
-    setNewPhone('');
-    setNewEmail('');
-    setIsAddCustomerOpen(false);
+      setNewName('');
+      setNewPhone('');
+      setNewEmail('');
+      setIsAddCustomerOpen(false);
+    } finally {
+      setIsSubmittingCustomer(false);
+    }
   };
 
   const handleAddNoteSubmit = (e: React.FormEvent) => {
@@ -545,9 +552,11 @@ export default function CustomerWorkspacePage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow"
+                  disabled={isSubmittingCustomer}
+                  className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl shadow flex items-center gap-1.5"
                 >
-                  Save Record
+                  {isSubmittingCustomer ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  <span>{isSubmittingCustomer ? 'Saving Record...' : 'Save Record to Neon DB'}</span>
                 </button>
               </div>
             </form>

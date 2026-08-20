@@ -21,28 +21,25 @@ export const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">Product</h4>
             <div className="flex flex-col gap-2.5">
-              <a href="#services" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Services</a>
-              <a href="#how-it-works" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">How It Works</a>
-              <a href="#product" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Product Preview</a>
-              <a href="#results" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Results</a>
+              <a href="#services" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Services</a>
+              <a href="#how-it-works" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">How It Works</a>
+              <a href="#product" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Product Preview</a>
+              <a href="#results" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Results</a>
             </div>
           </div>
           <div className="space-y-4">
             <h4 className="text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">Platform</h4>
             <div className="flex flex-col gap-2.5">
-              <Link href="/dashboard" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Dashboard</Link>
-              <Link href="/dashboard/customers" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Customer CRM</Link>
-              <Link href="/dashboard/marketing" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Marketing</Link>
-              <Link href="/dashboard/ai" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">AI Workspace</Link>
+              <Link href="/dashboard" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Dashboard</Link>
+              <Link href="/dashboard/customers" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Customer CRM</Link>
+              <Link href="/dashboard/marketing" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Marketing</Link>
+              <Link href="/dashboard/ai" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">AI Workspace</Link>
             </div>
           </div>
           <div className="space-y-4">
             <h4 className="text-xs font-semibold text-zinc-900 dark:text-white uppercase tracking-wider">Company</h4>
             <div className="flex flex-col gap-2.5">
-              <a href="#case-studies" className="text-xs text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Case Studies</a>
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">About</span>
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">Contact</span>
-              <span className="text-xs text-zinc-600 dark:text-zinc-400">Privacy Policy</span>
+              <a href="#case-studies" className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Case Studies</a>
             </div>
           </div>
         </div>

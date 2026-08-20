@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApp } from '../../context/AppContext';
+import { PageSkeleton, CardSkeleton, Skeleton } from '../../components/ui';
 import {
   IndianRupee,
   Users,
   Calendar,
   Sparkles,
   TrendingUp,
-  ArrowUpRight,
   UserPlus,
   Megaphone,
   Globe,
@@ -17,111 +17,124 @@ import {
   AlertCircle,
   X,
   CheckSquare,
+  Loader2,
+  BarChart3,
+  CheckCircle2,
 } from 'lucide-react';
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-} from 'recharts';
-import { mockTasks } from '@businessos/database';
 
 export default function BusinessDashboard() {
   const {
     session,
+    customers,
     bookings,
-    leads,
-    invoices,
     services,
     addCustomer,
     addBooking,
     addCampaign,
     addToast,
+    refreshData,
   } = useApp();
 
-  const [activeModal, setActiveModal] = useState<'customer' | 'booking' | 'campaign' | 'ask_ai' | null>(null);
+  const [dbStats, setDbStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [activeModal, setActiveModal] = useState<'customer' | 'booking' | 'campaign' | null>(null);
 
+  // Form states
   const [custName, setCustName] = useState('');
+  const [custEmail, setCustEmail] = useState('');
   const [custPhone, setCustPhone] = useState('');
-  const [bookingServiceId, setBookingServiceId] = useState(services[0]?.id || '');
+  const [bookingServiceId, setBookingServiceId] = useState('');
+  const [bookingCustName, setBookingCustName] = useState('');
   const [campaignTitle, setCampaignTitle] = useState('');
-  const [aiPromptInput, setAiPromptInput] = useState('');
+  const [campaignContent, setCampaignContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const recentActivities = [
-    {
-      id: 'act-1',
-      type: 'CUSTOMER_ADDED',
-      title: 'New VIP Customer Added',
-      description: 'Rahul Sharma (+91 98112 34567) registered.',
-      time: '10 mins ago',
-      icon: UserPlus,
-      color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400',
-    },
-    {
-      id: 'act-2',
-      type: 'BOOKING_CREATED',
-      title: 'Appointment Confirmed',
-      description: 'Sarah Miller booked Signature Hydra-Facial for 2:00 PM.',
-      time: '32 mins ago',
-      icon: Calendar,
-      color: 'text-teal-600 bg-teal-50 dark:bg-teal-950/40 dark:text-teal-400',
-    },
-    {
-      id: 'act-3',
-      type: 'AI_ACTION_COMPLETED',
-      title: 'AI Tool Execution Completed',
-      description: 'Executed GET_INACTIVE_CUSTOMERS intent (14 clients targeted).',
-      time: '1 hour ago',
-      icon: Sparkles,
-      color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400',
-    },
-    {
-      id: 'act-4',
-      type: 'CAMPAIGN_SENT',
-      title: 'WhatsApp Broadcast Sent',
-      description: '"Weekend Radiance Flash Sale" delivered to 42 clients.',
-      time: '2 hours ago',
-      icon: Megaphone,
-      color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400',
-    },
-  ];
-
-  const revenueToday = invoices
-    .filter((i) => i.status === 'PAID' && i.createdAt.startsWith('2026-08-11'))
-    .reduce((acc, i) => acc + i.total, 0) || 4720;
-
-  const revenueThisMonth = invoices
-    .filter((i) => i.status === 'PAID')
-    .reduce((acc, i) => acc + i.total, 0) || 84000;
-
-  const previousMonthRevenue = 73500;
-  const revenueGrowthPercentage = Math.round(((revenueThisMonth - previousMonthRevenue) / previousMonthRevenue) * 100);
-
-  const newLeadsCount = leads.filter((l) => l.stage === 'NEW').length;
-  const qualifiedLeadsCount = leads.filter((l) => l.stage === 'QUALIFIED' || l.stage === 'CONTACTED').length;
-  const totalPipelineValue = leads.reduce((acc, l) => acc + l.estimatedValue, 0);
-
-  const todayAppointments = bookings.filter((b) => b.status === 'CONFIRMED' || b.status === 'PENDING');
-  const upcomingAppointmentsCount = bookings.length;
-
-  const [tasks, setTasks] = useState(mockTasks);
-  const pendingTasksCount = tasks.filter((t) => t.status !== 'DONE').length;
-
-  const revenueChartData = [
-    { day: 'Mon', revenue: 6200 },
-    { day: 'Tue', revenue: 8400 },
-    { day: 'Wed', revenue: 7100 },
-    { day: 'Thu', revenue: 9800 },
-    { day: 'Fri', revenue: 12400 },
-    { day: 'Sat', revenue: 15600 },
-    { day: 'Sun', revenue: 11200 },
-  ];
-
-  const toggleTaskStatus = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: t.status === 'DONE' ? 'TODO' : 'DONE' } : t))
-    );
-    addToast({ type: 'info', title: 'Task Updated', message: 'Task completion status updated.' });
+  const fetchDashboardStats = async () => {
+    setLoadingStats(true);
+    try {
+      const res = await fetch('/api/dashboard', {
+        headers: { 'x-saarthi-user-email': session.userEmail },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDbStats(data.stats);
+      }
+    } catch {
+      // Fallback
+    } finally {
+      setLoadingStats(false);
+    }
   };
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [session.userEmail]);
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!custName || !custPhone) return;
+    setIsSubmitting(true);
+    try {
+      await addCustomer({ name: custName, email: custEmail || 'client@example.com', phone: custPhone });
+      setCustName('');
+      setCustEmail('');
+      setCustPhone('');
+      setActiveModal(null);
+      await fetchDashboardStats();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookingCustName) return;
+    setIsSubmitting(true);
+    try {
+      await addBooking({
+        customerName: bookingCustName,
+        serviceId: bookingServiceId || services[0]?.id,
+      });
+      setBookingCustName('');
+      setActiveModal(null);
+      await fetchDashboardStats();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaignTitle) return;
+    setIsSubmitting(true);
+    try {
+      await addCampaign({
+        name: campaignTitle,
+        content: campaignContent || 'Special promotional offer for valued clients.',
+      });
+      setCampaignTitle('');
+      setCampaignContent('');
+      setActiveModal(null);
+      await fetchDashboardStats();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loadingStats && !dbStats) {
+    return <PageSkeleton />;
+  }
+
+  const totalCustomers = dbStats?.totalCustomers ?? customers.length;
+  const activeProjects = dbStats?.activeProjects ?? 0;
+  const pendingTasksCount = dbStats?.pendingTasksCount ?? 0;
+  const todayAppointmentsCount = dbStats?.todayAppointmentsCount ?? bookings.length;
+  const revenueThisMonth = dbStats?.revenueThisMonth ?? 0;
+  const revenueToday = dbStats?.revenueToday ?? 0;
+  const aiRequestsToday = dbStats?.aiRequestsToday ?? 0;
+  const monthlyAiRequests = dbStats?.monthlyAiRequests ?? 0;
+  const tasks = dbStats?.tasks || [];
+  const recentActivities = dbStats?.recentActivities || [];
 
   return (
     <div className="space-y-8 font-sans">
@@ -133,20 +146,20 @@ export default function BusinessDashboard() {
             <span>AI BUSINESS COMMAND CENTER</span>
           </div>
           <h1 className="text-2xl md:text-4xl font-display font-extrabold tracking-tight">
-            Good morning, {session.organizationName}
+            Welcome back, {session.userName}
           </h1>
           <p className="text-xs md:text-sm text-zinc-400 font-sans">
-            Here is what needs your attention today. You have <span className="text-white font-bold">{pendingTasksCount} pending tasks</span> and <span className="text-emerald-400 font-bold">{todayAppointments.length} upcoming appointments</span>.
+            Connected Account: <span className="text-white font-mono font-bold">{session.userEmail}</span> · Role: <span className="text-emerald-400 font-mono font-bold">{session.role}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-3 relative z-10">
           <button
             onClick={() => (window.location.href = '/dashboard/ai')}
-            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-xs transition-all shadow-md flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 active:scale-95"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Ask Saarthi</span>
+            <span>Ask Saarthi AI</span>
           </button>
         </div>
       </div>
@@ -155,208 +168,288 @@ export default function BusinessDashboard() {
       <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="flex items-center justify-between mb-3 px-1">
           <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider">Quick Actions</span>
-          <span className="text-[10px] text-zinc-400 font-mono">1-Click Execution</span>
+          <span className="text-[10px] text-zinc-400 font-mono">Real-time DB Execution</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <button
             onClick={() => setActiveModal('customer')}
-            className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-semibold flex items-center gap-2 transition-all group"
+            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <UserPlus className="w-3.5 h-3.5" />
-            </div>
-            <span>Add Customer</span>
+            <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1.5" />
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">Add Customer</p>
+            <p className="text-[10px] text-zinc-400">Save to Neon DB</p>
           </button>
-
-          <button
-            onClick={() => setActiveModal('campaign')}
-            className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-semibold flex items-center gap-2 transition-all group"
-          >
-            <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Megaphone className="w-3.5 h-3.5" />
-            </div>
-            <span>Create Campaign</span>
-          </button>
-
           <button
             onClick={() => setActiveModal('booking')}
-            className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-semibold flex items-center gap-2 transition-all group"
+            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <div className="w-7 h-7 rounded-lg bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Calendar className="w-3.5 h-3.5" />
-            </div>
-            <span>Create Booking</span>
+            <Calendar className="w-4 h-4 text-teal-600 dark:text-teal-400 mb-1.5" />
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">Schedule Appointment</p>
+            <p className="text-[10px] text-zinc-400">Add to roster</p>
           </button>
-
-          <Link
-            href="/dashboard/website"
-            className="p-3 rounded-xl bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-semibold flex items-center gap-2 transition-all group"
+          <button
+            onClick={() => setActiveModal('campaign')}
+            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Globe className="w-3.5 h-3.5" />
-            </div>
-            <span>Build Website</span>
-          </Link>
-
-          <Link
-            href="/dashboard/ai"
-            className="p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold flex items-center gap-2 transition-all group col-span-2 sm:col-span-1"
+            <Megaphone className="w-4 h-4 text-amber-600 dark:text-amber-400 mb-1.5" />
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">Dispatch Campaign</p>
+            <p className="text-[10px] text-zinc-400">Broadcast offer</p>
+          </button>
+          <button
+            onClick={() => (window.location.href = '/dashboard/ai')}
+            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Sparkles className="w-3.5 h-3.5" />
-            </div>
-            <span>Ask AI Workspace</span>
-          </Link>
+            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1.5" />
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">AI Workspace</p>
+            <p className="text-[10px] text-zinc-400">Persisted history</p>
+          </button>
         </div>
       </div>
 
-      {/* CORE METRICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* REVENUE PULSE */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between space-y-3">
-          <div>
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider">Revenue Pulse</span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <IndianRupee className="w-4 h-4" />
-              </div>
-            </div>
-            <span className="text-xs text-zinc-400 font-sans block">Revenue Today: ₹{revenueToday.toLocaleString()}</span>
-            <div className="text-metric font-display text-zinc-900 dark:text-white mt-1">
-              ₹{revenueThisMonth.toLocaleString()}
-            </div>
-            <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1.5">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>+{revenueGrowthPercentage}% vs last month</span>
+      {/* METRICS STATS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Total Customers</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+              <Users className="w-4 h-4" />
             </div>
           </div>
-
-          <div className="h-14 w-full pt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueChartData}>
-                <Area type="monotone" dataKey="revenue" stroke="#10B981" fill="#D1FAE5" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+            {totalCustomers}
           </div>
+          <p className="text-[10px] text-zinc-400 font-mono">Neon PostgreSQL record count</p>
         </div>
 
-        {/* LEADS & PIPELINE */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between space-y-3">
-          <div>
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider">Leads & Pipeline</span>
-              <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-                <Users className="w-4 h-4" />
-              </div>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Active Tasks</span>
+            <div className="p-2 rounded-xl bg-teal-500/10 text-teal-500">
+              <CheckSquare className="w-4 h-4" />
             </div>
-            <div className="flex items-center justify-between text-xs text-zinc-400">
-              <span>New Leads: <strong className="text-zinc-900 dark:text-white">{newLeadsCount}</strong></span>
-              <span>Qualified: <strong className="text-zinc-900 dark:text-white">{qualifiedLeadsCount}</strong></span>
-            </div>
-            <div className="text-metric font-display text-zinc-900 dark:text-white mt-1">
-              ₹{totalPipelineValue.toLocaleString()}
-            </div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-1.5">
-              Pipeline Conversion: 68%
-            </p>
           </div>
-
-          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
-            <span>3 website leads today</span>
-            <Link href="/dashboard/customers" className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">View CRM</Link>
+          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+            {activeProjects}
           </div>
+          <p className="text-[10px] text-zinc-400 font-mono">{pendingTasksCount} pending action items</p>
         </div>
 
-        {/* APPOINTMENTS */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between space-y-3">
-          <div>
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider">Appointments</span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <Calendar className="w-4 h-4" />
-              </div>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Appointments</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+              <Calendar className="w-4 h-4" />
             </div>
-            <div className="text-metric font-display text-zinc-900 dark:text-white">
-              {todayAppointments.length} <span className="text-sm font-sans font-normal text-zinc-400">Today</span>
-            </div>
-            <p className="text-xs text-zinc-400 mt-1">{upcomingAppointmentsCount} total upcoming</p>
           </div>
-
-          <div className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 flex items-center justify-between text-xs">
-            <span className="text-zinc-400 font-medium">No-Shows Today</span>
-            <span className="font-bold text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[10px]">
-              0 No-Shows
-            </span>
+          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+            {todayAppointmentsCount}
           </div>
+          <p className="text-[10px] text-zinc-400 font-mono">Scheduled in database roster</p>
         </div>
 
-        {/* OPERATIONAL TASKS */}
-        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between space-y-3">
-          <div>
-            <div className="flex items-center justify-between text-zinc-400 mb-2">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider">Operational Tasks</span>
-              <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                <CheckSquare className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-metric font-display text-zinc-900 dark:text-white">
-              {pendingTasksCount} <span className="text-sm font-sans font-normal text-zinc-400">Pending</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-bold mt-1">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>1 task high priority</span>
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">AI Requests</span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+              <Sparkles className="w-4 h-4" />
             </div>
           </div>
-
-          <div className="space-y-1.5 pt-1">
-            {tasks.slice(0, 2).map((t) => (
-              <div
-                key={t.id}
-                onClick={() => toggleTaskStatus(t.id)}
-                className="p-2 rounded-lg bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-[11px] flex items-center justify-between cursor-pointer border border-zinc-100 dark:border-zinc-700"
-              >
-                <span className={`truncate max-w-[140px] ${t.status === 'DONE' ? 'line-through text-zinc-400' : 'text-zinc-800 dark:text-zinc-200 font-medium'}`}>
-                  {t.title}
-                </span>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                  {t.priority}
-                </span>
-              </div>
-            ))}
+          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+            {aiRequestsToday}
           </div>
+          <p className="text-[10px] text-zinc-400 font-mono">Recorded in AIUsage table</p>
         </div>
       </div>
 
-      {/* RECENT ACTIVITY TIMELINE */}
-      <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
-          <div>
-            <h3 className="text-base font-bold text-zinc-900 dark:text-white">Recent Platform Activity Feed</h3>
-            <p className="text-xs text-zinc-400">Live operational timeline across multi-tenant services</p>
+      {/* RECENT ACTIVITY & TASKS GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">Recent Activity Log</h3>
+            <span className="text-[10px] font-mono text-zinc-400">Database audit stream</span>
           </div>
-          <span className="text-xs text-zinc-400 font-mono">Real-time Stream</span>
-        </div>
 
-        <div className="space-y-3">
-          {recentActivities.map((act) => {
-            const Icon = act.icon;
-            return (
-              <div key={act.id} className="flex items-start gap-4 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${act.color}`}>
-                  <Icon className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{act.title}</h4>
-                    <span className="text-[10px] text-zinc-400 font-mono">{act.time}</span>
+          {recentActivities.length === 0 ? (
+            <p className="text-xs text-zinc-400 py-6 text-center">No data available yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {recentActivities.map((act: any) => (
+                <div key={act.id} className="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 text-xs">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                    {act.role === 'user' ? 'U' : 'स'}
                   </div>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">{act.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-zinc-900 dark:text-white">{act.title}</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-[11px] truncate">{act.description}</p>
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-400 shrink-0">{act.time}</span>
                 </div>
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Tasks List */}
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">Active Operations & Tasks</h3>
+            <span className="text-[10px] font-mono text-zinc-400">{tasks.length} Total</span>
+          </div>
+
+          {tasks.length === 0 ? (
+            <p className="text-xs text-zinc-400 py-6 text-center">No data available yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {tasks.map((t: any) => (
+                <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 text-xs">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className={`w-4 h-4 ${t.status === 'DONE' ? 'text-emerald-500' : 'text-zinc-400'}`} />
+                    <span className={`font-medium ${t.status === 'DONE' ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                      {t.title}
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 uppercase">
+                    {t.priority}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* ─── MODALS ───────────────────────────────────────────────────────── */}
+      {activeModal === 'customer' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">Add New Customer</h3>
+              <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
+            </div>
+            <form onSubmit={handleCreateCustomer} className="space-y-3">
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Full Name</label>
+                <input
+                  required
+                  value={custName}
+                  onChange={(e) => setCustName(e.target.value)}
+                  placeholder="e.g. Ramesh Kumar"
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={custEmail}
+                  onChange={(e) => setCustEmail(e.target.value)}
+                  placeholder="e.g. ramesh@example.com"
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Phone Number</label>
+                <input
+                  required
+                  value={custPhone}
+                  onChange={(e) => setCustPhone(e.target.value)}
+                  placeholder="e.g. +91 98000 12345"
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div className="pt-2 flex justify-end gap-2">
+                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
+                  {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  <span>{isSubmitting ? 'Saving...' : 'Save to Neon DB'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'booking' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">Schedule Appointment</h3>
+              <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
+            </div>
+            <form onSubmit={handleCreateBooking} className="space-y-3">
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Customer Name</label>
+                <input
+                  required
+                  value={bookingCustName}
+                  onChange={(e) => setBookingCustName(e.target.value)}
+                  placeholder="e.g. Neha Gupta"
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Select Service</label>
+                <select
+                  value={bookingServiceId}
+                  onChange={(e) => setBookingServiceId(e.target.value)}
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
+                >
+                  {services.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} (₹{s.price})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="pt-2 flex justify-end gap-2">
+                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
+                  {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  <span>{isSubmitting ? 'Saving...' : 'Confirm Appointment'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'campaign' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">Dispatch Marketing Campaign</h3>
+              <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
+            </div>
+            <form onSubmit={handleCreateCampaign} className="space-y-3">
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Campaign Title</label>
+                <input
+                  required
+                  value={campaignTitle}
+                  onChange={(e) => setCampaignTitle(e.target.value)}
+                  placeholder="e.g. Weekend Flash Offer"
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Message Content</label>
+                <textarea
+                  value={campaignContent}
+                  onChange={(e) => setCampaignContent(e.target.value)}
+                  placeholder="Write promotional broadcast copy..."
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500 h-24 resize-none"
+                />
+              </div>
+              <div className="pt-2 flex justify-end gap-2">
+                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
+                  {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  <span>{isSubmitting ? 'Sending...' : 'Dispatch Broadcast'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -201,3 +201,56 @@ export const PageHeader: React.FC<{ title: string; description: string; actions?
     {actions && <div className="flex items-center gap-3">{actions}</div>}
   </div>
 );
+
+// 12. Skeleton Loading Components
+export const Skeleton: React.FC<{ className?: string }> = ({ className = 'h-4 w-full' }) => (
+  <div className={`bg-zinc-200 dark:bg-zinc-800/80 animate-pulse rounded-xl ${className}`} />
+);
+
+export const CardSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <div className={`bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-3 shadow-sm ${className}`}>
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-4 w-1/3" />
+      <Skeleton className="h-8 w-8 rounded-xl" />
+    </div>
+    <Skeleton className="h-8 w-1/2" />
+    <Skeleton className="h-3 w-2/3" />
+  </div>
+);
+
+export const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 4 }) => (
+  <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden p-4 space-y-4 shadow-sm">
+    <div className="flex justify-between items-center pb-2 border-b border-zinc-100 dark:border-zinc-800">
+      <Skeleton className="h-5 w-1/4" />
+      <Skeleton className="h-8 w-24 rounded-xl" />
+    </div>
+    {Array.from({ length: rows }).map((_, i) => (
+      <div key={i} className="flex items-center gap-4 py-2">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-3 w-1/4" />
+        </div>
+        <Skeleton className="h-6 w-20 rounded-lg" />
+      </div>
+    ))}
+  </div>
+);
+
+export const PageSkeleton: React.FC = () => (
+  <div className="space-y-8 font-sans">
+    <div className="bg-zinc-900 p-8 rounded-3xl border border-zinc-800 space-y-4 shadow-xl">
+      <Skeleton className="h-4 w-36 bg-zinc-800" />
+      <Skeleton className="h-8 w-2/3 bg-zinc-800" />
+      <Skeleton className="h-4 w-1/2 bg-zinc-800" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <CardSkeleton />
+      <CardSkeleton />
+      <CardSkeleton />
+      <CardSkeleton />
+    </div>
+    <TableSkeleton rows={5} />
+  </div>
+);
+

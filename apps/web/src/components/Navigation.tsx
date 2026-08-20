@@ -18,11 +18,12 @@ import {
   Search,
   Moon,
   Sun,
+  UserCheck,
 } from 'lucide-react';
 
 export const SidebarNav: React.FC = () => {
   const pathname = usePathname();
-  const { session, setRole } = useApp();
+  const { session, setRole, switchAccount } = useApp();
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -33,6 +34,13 @@ export const SidebarNav: React.FC = () => {
     { name: 'AI Workspace', href: '/dashboard/ai', icon: Sparkles, badge: 'AI Native' },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
+
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    const parts = name.split(' ');
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
 
   return (
     <aside className="w-64 bg-zinc-900 border-r border-zinc-800 text-zinc-200 flex flex-col h-screen sticky top-0 z-40 select-none">
@@ -46,23 +54,40 @@ export const SidebarNav: React.FC = () => {
             <h1 className="font-display font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
               SAARTHI <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-sans font-bold px-1.5 py-0.5 rounded border border-emerald-500/30">AI</span>
             </h1>
-            <p className="text-[11px] text-zinc-400 font-sans font-medium">Lumina Luxe Spa</p>
+            <p className="text-[11px] text-zinc-400 font-sans font-medium truncate max-w-[130px]">{session.organizationName}</p>
           </div>
         </Link>
       </div>
 
-      {/* Role Switcher Widget */}
-      <div className="mx-3 my-3 p-2.5 bg-zinc-950/60 rounded-xl border border-zinc-800/80">
-        <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5 font-medium px-1">
+      {/* Account & Role Switcher Widget */}
+      <div className="mx-3 my-3 p-2.5 bg-zinc-950/60 rounded-xl border border-zinc-800/80 space-y-2">
+        <div className="flex items-center justify-between text-xs text-zinc-400 font-medium px-1">
+          <span className="flex items-center gap-1">
+            <UserCheck className="w-3 h-3 text-emerald-400" />
+            Account Context
+          </span>
+        </div>
+        <select
+          value={session.userEmail}
+          onChange={(e) => switchAccount(e.target.value)}
+          className="w-full text-[11px] font-semibold bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-lg p-1.5 focus:outline-none focus:border-emerald-500 cursor-pointer"
+        >
+          <option value="prathamesh@test.com">Account A: Prathamesh</option>
+          <option value="krushna@test.com">Account B: Krushna</option>
+          <option value="admin@test.com">Account C: Admin</option>
+          <option value="ananya@luminaluxe.com">Account D: Ananya Verma</option>
+        </select>
+
+        <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1 px-1">
           <span>Active Role</span>
-          <span className="font-mono text-[10px] text-emerald-400 uppercase tracking-wider">{session.role}</span>
+          <span className="font-mono text-[10px] text-emerald-400 uppercase font-bold">{session.role}</span>
         </div>
         <div className="grid grid-cols-3 gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
           {(['OWNER', 'MANAGER', 'STAFF'] as Role[]).map((r) => (
             <button
               key={r}
               onClick={() => setRole(r)}
-              className={`py-1 text-[11px] font-semibold rounded-md transition-all ${
+              className={`py-1 text-[10px] font-semibold rounded-md transition-all ${
                 session.role === r
                   ? 'bg-emerald-600 text-white shadow'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
@@ -114,16 +139,16 @@ export const SidebarNav: React.FC = () => {
       {/* User Profile Footer */}
       <div className="p-3 border-t border-zinc-800 bg-zinc-950/40">
         <div className="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-800/60 transition-colors">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center font-bold text-xs text-emerald-300">
-              AV
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center font-bold text-xs text-emerald-300 shrink-0">
+              {getInitials(session.userName)}
             </div>
-            <div className="text-left leading-tight">
-              <p className="text-xs font-semibold text-zinc-200">{session.userName}</p>
-              <p className="text-[10px] text-zinc-400 truncate max-w-[110px]">{session.userEmail}</p>
+            <div className="text-left leading-tight min-w-0 flex-1">
+              <p className="text-xs font-semibold text-zinc-200 truncate">{session.userName}</p>
+              <p className="text-[10px] text-zinc-400 truncate">{session.userEmail}</p>
             </div>
           </div>
-          <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50 shrink-0"></span>
         </div>
       </div>
     </aside>

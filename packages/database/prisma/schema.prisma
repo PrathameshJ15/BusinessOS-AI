@@ -1,7 +1,8 @@
 // BusinessOS AI - Multi-Tenant Neon PostgreSQL Schema
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -27,14 +28,19 @@ enum AccountStatus {
 }
 
 model User {
-  id          String       @id @default(cuid())
-  email       String       @unique
-  name        String
-  avatarUrl   String?
-  phone       String?
-  memberships Membership[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String           @id @default(cuid())
+  email            String           @unique
+  name             String
+  avatarUrl        String?
+  image            String?
+  phone            String?
+  onboardingCompleted Boolean       @default(false)
+  memberships      Membership[]
+  businessUsers    BusinessUser[]
+  aiConversations  AiConversation[]
+  aiUsage          AiUsage?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 model Organization {
@@ -273,3 +279,93 @@ model Subscription {
   razorpaySubscriptionId String?
   organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
+
+// ─── Saarthi AI Conversation Persistence ─────────────────────────────────────
+
+model AiConversation {
+  id         String      @id @default(cuid())
+  userId     String
+  businessId String?
+  title      String      @default("New conversation")
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business   Business?   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  messages   AiMessage[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([businessId])
+}
+
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  role           String         // "user" | "assistant" | "system"
+  content        String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId])
+}
+
+model AiUsage {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyRequests   Int       @default(0)
+  monthlyRequests Int       @default(0)
+  tokensUsed      Int       @default(0)
+  lastRequestAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// ─── Business Onboarding Models ──────────────────────────────────────────────
+
+model Business {
+  id               String         @id @default(cuid())
+  name             String
+  type             String?
+  industry         String?
+  description      String?
+
+  email            String?
+  phone            String?
+  website          String?
+
+  address          String?
+  city             String?
+  state            String?
+  country          String?        @default("India")
+
+  employeeCount    Int?           @default(1)
+  businessStage    String?        @default("GROWTH")
+  targetCustomers  String?
+  productsServices String?
+
+  logoUrl          String?
+  taxId            String?
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  users            BusinessUser[]
+  conversations    AiConversation[]
+}
+
+model BusinessUser {
+  id         String   @id @default(cuid())
+  userId     String
+  businessId String
+  role       String   @default("owner")
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, businessId])
+}
+
