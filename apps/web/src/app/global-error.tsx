@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 export default function GlobalError({
   error,
@@ -14,8 +15,8 @@ export default function GlobalError({
     <html lang="en" className="dark">
       <body className="bg-zinc-950 text-white font-sans antialiased min-h-screen flex items-center justify-center p-6 text-center">
         <div className="max-w-md w-full p-8 rounded-3xl bg-zinc-900 border border-zinc-800 shadow-2xl space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xl mx-auto shadow-md">
-            स
+          <div className="flex justify-center mb-2">
+            <Logo size={56} priority />
           </div>
           <h1 className="text-xl font-bold font-display tracking-tight text-white">
             Application Exception

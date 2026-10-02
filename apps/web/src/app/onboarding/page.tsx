@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
+import { Logo } from '@/components/Logo';
 import {
   Building2,
   Sparkles,
@@ -159,17 +160,14 @@ export default function BusinessOnboardingPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans grid-pattern flex flex-col justify-between p-6">
       {/* Brand Header */}
       <div className="max-w-4xl mx-auto w-full flex items-center justify-between py-4 border-b border-zinc-800/80">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold shadow-md shadow-emerald-600/30">
-            स
-          </div>
-          <div>
-            <h1 className="font-display font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
-              SAARTHI <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-sans font-bold px-1.5 py-0.5 rounded border border-emerald-500/30">AI</span>
-            </h1>
-            <p className="text-[10px] text-zinc-400 font-mono">Business Setup & Onboarding</p>
-          </div>
-        </div>
+        <Logo
+          href="/"
+          size={38}
+          showText
+          textVariant="dashboard"
+          subtitle="Business Setup & Onboarding"
+          priority
+        />
 
         <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 export const Footer: React.FC = () => {
   return (
@@ -9,13 +10,12 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
           <div className="md:col-span-1 space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">स</div>
-              <div>
-                <span className="font-display font-bold text-sm text-zinc-900 dark:text-white">Saarthi AI</span>
-                <span className="text-xs font-devanagari text-zinc-500 dark:text-zinc-400 block">सारथी AI</span>
-              </div>
-            </div>
+            <Logo
+              size={36}
+              showText
+              textVariant="compact"
+              subtitle="सारथी AI"
+            />
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-[240px]">One intelligent workspace that understands your business, takes action, and helps you grow.</p>
           </div>
           <div className="space-y-4">

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '../context/AppContext';
+import { Logo } from './Logo';
 import { Role } from '@businessos/shared';
 import {
   LayoutDashboard,
@@ -46,17 +47,14 @@ export const SidebarNav: React.FC = () => {
     <aside className="w-64 bg-zinc-900 border-r border-zinc-800 text-zinc-200 flex flex-col h-screen sticky top-0 z-40 select-none">
       {/* Brand Header */}
       <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold shadow-md group-hover:scale-105 transition-transform">
-            स
-          </div>
-          <div>
-            <h1 className="font-display font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
-              SAARTHI <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-sans font-bold px-1.5 py-0.5 rounded border border-emerald-500/30">AI</span>
-            </h1>
-            <p className="text-[11px] text-zinc-400 font-sans font-medium truncate max-w-[130px]">{session.organizationName}</p>
-          </div>
-        </Link>
+        <Logo
+          href="/dashboard"
+          size={36}
+          showText
+          textVariant="dashboard"
+          subtitle={session.organizationName}
+          priority
+        />
       </div>
 
       {/* Account & Role Switcher Widget */}

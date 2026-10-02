@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Menu, X, Sun, Moon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { Logo } from '@/components/Logo';
 
 export const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useApp();
@@ -34,19 +35,7 @@ export const Navbar: React.FC = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group" aria-label="Saarthi AI Home">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
-              स
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display font-bold text-sm tracking-tight text-zinc-900 dark:text-white">
-                Saarthi AI
-              </span>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono leading-none">
-                Business Automation
-              </span>
-            </div>
-          </Link>
+          <Logo href="/" size={34} showText textVariant="landing" priority />
 
           <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => (
@@ -70,10 +59,17 @@ export const Navbar: React.FC = () => {
             </button>
 
             <Link
+              href="/login"
+              className="text-[13px] font-semibold text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Sign In
+            </Link>
+
+            <Link
               href="/dashboard"
               className="hidden sm:flex px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[13px] rounded-lg transition-all items-center gap-2 shadow-sm"
             >
-              <span>Get Started</span>
+              <span>Dashboard</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
@@ -101,13 +97,20 @@ export const Navbar: React.FC = () => {
                 {link.label}
               </a>
             ))}
-            <div className="pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="w-full flex px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold text-sm rounded-lg transition-all items-center justify-center gap-2"
+              >
+                <span>Sign In with Google</span>
+              </Link>
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}
                 className="w-full flex px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-all items-center justify-center gap-2"
               >
-                <span>Get Started</span>
+                <span>Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

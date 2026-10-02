@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, CheckCircle2, Zap, Bot, ArrowDown } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Zap, ArrowDown } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export const Hero: React.FC = () => {
   return (
@@ -64,7 +65,7 @@ export const Hero: React.FC = () => {
             <div className="flex flex-col items-center gap-2">
               <div className="w-48 p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 shadow-sm text-left">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-md bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center"><Bot className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /></div>
+                  <Logo size={20} />
                   <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Saarthi AI</span>
                 </div>
                 <div className="space-y-1.5"><div className="h-2 bg-emerald-200 dark:bg-emerald-900/60 rounded-full w-full animate-flow-pulse"></div><div className="h-2 bg-emerald-200 dark:bg-emerald-900/60 rounded-full w-2/3 animate-flow-pulse" style={{ animationDelay: '0.5s' }}></div></div>

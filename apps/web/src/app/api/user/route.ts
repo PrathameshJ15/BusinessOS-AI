@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 import { getServerUser } from '@/lib/auth';
 import { updateUser } from '@/lib/data/users';
 
@@ -9,12 +11,16 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
     const activeEmailHeader = request.headers.get('x-saarthi-user-email');
     const cookieEmail = request.cookies.get('saarthi_user_email')?.value;
-    const targetEmail = activeEmailHeader || cookieEmail || undefined;
+    const targetEmail = activeEmailHeader || session?.user?.email || cookieEmail || undefined;
 
     const user = await getServerUser(targetEmail);
-    return NextResponse.json(user);
+    return NextResponse.json({
+      ...user,
+      isGoogleAuth: Boolean(session?.user?.email && session.user.email === user.email),
+    });
   } catch (error) {
     console.error('[GET /api/user] Error:', error);
     return NextResponse.json({ error: 'Failed to retrieve user context.' }, { status: 500 });
