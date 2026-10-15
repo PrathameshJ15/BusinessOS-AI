@@ -16,10 +16,9 @@ import {
   Zap,
 } from 'lucide-react';
 import { ROLE_PERMISSIONS } from '@businessos/auth';
-import { mockIntegrations } from '@businessos/database';
 
 export default function SettingsPage() {
-  const { session, invoices, canAccess, addToast, updateUserSettings, updateBusinessSettings, refreshData } = useApp();
+  const { session, invoices, subscription, integrations, toggleIntegration, canAccess, addToast, updateUserSettings, updateBusinessSettings, refreshData } = useApp();
   const [activeTab, setActiveTab] = useState<'account' | 'profile' | 'rbac' | 'integrations' | 'billing'>('account');
 
   // AI Usage state from Neon
@@ -470,8 +469,8 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-3">
-            {mockIntegrations.map((int) => (
-              <div key={int.id} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+            {integrations.map((int: any) => (
+              <div key={int.id || int.provider} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white font-bold text-xs flex items-center justify-center">
                     {int.provider.charAt(0)}
@@ -482,9 +481,17 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                  Connected (Sandbox Mode)
-                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleIntegration(int.provider)}
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors ${
+                    int.status === 'CONNECTED'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:opacity-80'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700 hover:opacity-80'
+                  }`}
+                >
+                  {int.status === 'CONNECTED' ? 'Connected (Sandbox Mode)' : 'Disconnected (Click to Connect)'}
+                </button>
               </div>
             ))}
           </div>
@@ -497,10 +504,12 @@ export default function SettingsPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Subscription & Invoices</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Active Plan: <span className="font-bold text-emerald-600 dark:text-emerald-400">BusinessOS PRO (₹2,999/mo)</span></p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Active Plan: <span className="font-bold text-emerald-600 dark:text-emerald-400">BusinessOS {subscription?.plan || 'PRO'} (₹{Number(subscription?.amount ?? 2999).toLocaleString()}/mo)</span>
+              </p>
             </div>
             <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-              Subscription Active
+              {subscription?.status === 'ACTIVE' ? 'Subscription Active' : (subscription?.status || 'Subscription Active')}
             </span>
           </div>
 

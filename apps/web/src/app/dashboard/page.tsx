@@ -121,6 +121,41 @@ export default function BusinessDashboard() {
     }
   };
 
+  const handleToggleTask = async (task: any) => {
+    const nextStatus = task.status === 'DONE' ? 'TODO' : 'DONE';
+    setDbStats((prev: any) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        tasks: prev.tasks.map((t: any) => (t.id === task.id ? { ...t, status: nextStatus } : t)),
+        pendingTasksCount:
+          nextStatus === 'DONE'
+            ? Math.max(0, (prev.pendingTasksCount || 1) - 1)
+            : (prev.pendingTasksCount || 0) + 1,
+      };
+    });
+
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ id: task.id, status: nextStatus }),
+      });
+      if (res.ok) {
+        addToast({
+          type: 'success',
+          title: nextStatus === 'DONE' ? 'Task Completed' : 'Task Reopened',
+          message: `Updated task status in Neon DB.`,
+        });
+      }
+    } catch {
+      await fetchDashboardStats();
+    }
+  };
+
   if (loadingStats && !dbStats) {
     return <PageSkeleton />;
   }
@@ -302,7 +337,11 @@ export default function BusinessDashboard() {
           ) : (
             <div className="space-y-2">
               {tasks.map((t: any) => (
-                <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 text-xs">
+                <div
+                  key={t.id}
+                  onClick={() => handleToggleTask(t)}
+                  className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className={`w-4 h-4 ${t.status === 'DONE' ? 'text-emerald-500' : 'text-zinc-400'}`} />
                     <span className={`font-medium ${t.status === 'DONE' ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-zinc-100'}`}>

@@ -3,10 +3,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { AuthSession, hasPermission } from '@businessos/auth';
 import {
-  Booking, Campaign, Conversation, Customer, CustomerActivity, Invoice, Lead, Note, Permission, Review, Role, Service, Website,
+  Booking, Campaign, Conversation, Customer, CustomerActivity, Invoice, Lead, Note, Permission, Review, Role, Service, Staff, Website,
 } from '@businessos/shared';
 import {
-  mockBusinessProfile, mockCustomerActivities, mockInvoices, mockLeads, mockNotes, mockOrganization, mockServices, mockStaff, mockWebsite,
+  mockBusinessProfile, mockCustomerActivities, mockIntegrations, mockInvoices, mockLeads, mockNotes, mockOrganization, mockServices, mockStaff, mockSubscription, mockWebsite,
 } from '@businessos/database';
 
 interface Toast {
@@ -30,21 +30,30 @@ interface AppContextType {
   campaigns: Campaign[];
   reviews: Review[];
   services: Service[];
+  staff: Staff[];
   website: Website;
   invoices: Invoice[];
+  subscription: any;
+  integrations: any[];
   notes: Note[];
   activities: CustomerActivity[];
   conversations: Conversation[];
   refreshData: () => Promise<void>;
   addCustomer: (cust: Partial<Customer>) => Promise<Customer>;
+  addLead: (lead: Partial<Lead>) => Promise<Lead>;
   addBooking: (booking: Partial<Booking>) => Promise<Booking>;
+  addService: (service: Partial<Service>) => Promise<Service>;
+  addStaff: (staff: Partial<Staff>) => Promise<Staff>;
   addCampaign: (campaign: Partial<Campaign>) => Promise<Campaign>;
-  updateWebsiteBlock: (blockId: string, content: any) => void;
-  publishWebsiteToggle: () => void;
-  replyToReview: (reviewId: string, responseText: string) => void;
+  updateWebsiteBlock: (blockId: string, content: any) => Promise<void>;
+  publishWebsiteToggle: () => Promise<void>;
+  replyToReview: (reviewId: string, responseText: string) => Promise<void>;
   createInvoice: (customerName: string, amount: number) => Invoice;
-  addNote: (customerId: string, content: string) => Note;
-  updateLeadStage: (leadId: string, newStage: string) => void;
+  createBillingOrder: (plan: string, amount: number) => Promise<any>;
+  verifyPayment: (payload: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; plan?: string; invoiceId?: string }) => Promise<boolean>;
+  toggleIntegration: (provider: string, status?: string) => Promise<void>;
+  addNote: (customerId: string, content: string) => Promise<Note>;
+  updateLeadStage: (leadId: string, newStage: string) => Promise<void>;
   bulkSendCampaign: (customerIds: string[]) => void;
   updateUserSettings: (data: { name?: string; email?: string; image?: string; phone?: string }) => Promise<void>;
   updateBusinessSettings: (data: any) => Promise<void>;
@@ -82,8 +91,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [services, setServices] = useState<Service[]>(mockServices);
+  const [staff, setStaff] = useState<Staff[]>(mockStaff);
   const [website, setWebsite] = useState<Website>(mockWebsite);
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
+  const [subscription, setSubscription] = useState<any>(mockSubscription);
+  const [integrations, setIntegrations] = useState<any[]>(mockIntegrations);
   const [notes, setNotes] = useState<Note[]>(mockNotes);
   const [activities, setActivities] = useState<CustomerActivity[]>(mockCustomerActivities);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -98,6 +110,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       let currentOrgName = mockOrganization.name;
       if (userRes.ok) {
         const u = await userRes.json();
+        if (u.organizationName) currentOrgName = u.organizationName;
 
         // Fetch Business details
         const bizRes = await fetch('/api/business');
@@ -120,18 +133,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const custRes = await fetch('/api/customers');
       if (custRes.ok) {
         const custs = await custRes.json();
-        if (Array.isArray(custs)) setCustomers(custs);
+        if (Array.isArray(custs)) {
+          setCustomers(custs);
+          // Also collect any persisted notes from customer records
+          const allNotes: Note[] = [];
+          custs.forEach((c: any) => {
+            if (Array.isArray(c.tags)) {
+              c.tags.forEach((t: string) => {
+                if (t.startsWith('__note__:')) {
+                  try {
+                    allNotes.push(JSON.parse(t.replace('__note__:', '')));
+                  } catch {}
+                }
+              });
+            }
+          });
+          if (allNotes.length > 0) {
+            setNotes((prev) => {
+              const ids = new Set(allNotes.map((n) => n.id));
+              return [...allNotes, ...prev.filter((p) => !ids.has(p.id))];
+            });
+          }
+        }
       }
 
-      // 3. Fetch Bookings from database API
+      // 3. Fetch Pipeline Leads from database API
+      const leadsRes = await fetch('/api/leads');
+      if (leadsRes.ok) {
+        const dbLeads = await leadsRes.json();
+        if (Array.isArray(dbLeads)) setLeads(dbLeads);
+      }
+
+      // 4. Fetch Bookings, Services & Staff from database API
       const bkRes = await fetch('/api/bookings');
       if (bkRes.ok) {
         const data = await bkRes.json();
         if (Array.isArray(data.bookings)) setBookings(data.bookings);
         if (Array.isArray(data.services) && data.services.length > 0) setServices(data.services);
+        if (Array.isArray(data.staff) && data.staff.length > 0) setStaff(data.staff);
       }
 
-      // 4. Fetch Marketing Campaigns from database API
+      // 5. Fetch Marketing Campaigns & Reviews from database API
       const mktRes = await fetch('/api/marketing');
       if (mktRes.ok) {
         const data = await mktRes.json();
@@ -139,11 +181,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (Array.isArray(data.reviews)) setReviews(data.reviews);
       }
 
-      // 5. Fetch Conversations from database API
+      // 6. Fetch Conversations from database API
       const convRes = await fetch('/api/conversations');
       if (convRes.ok) {
         const convs = await convRes.json();
         if (Array.isArray(convs)) setConversations(convs);
+      }
+
+      // 7. Fetch Website Builder State from database API
+      const webRes = await fetch('/api/website');
+      if (webRes.ok) {
+        const webData = await webRes.json();
+        if (webData?.subdomain && Array.isArray(webData?.pages)) {
+          setWebsite(webData);
+        }
+      }
+
+      // 8. Fetch Billing & Invoices from database API
+      const billRes = await fetch('/api/billing');
+      if (billRes.ok) {
+        const billData = await billRes.json();
+        if (billData?.subscription) setSubscription(billData.subscription);
+        if (Array.isArray(billData?.invoices)) setInvoices(billData.invoices);
+      }
+
+      // 9. Fetch Third-Party Integrations from database API
+      const intRes = await fetch('/api/integrations');
+      if (intRes.ok) {
+        const intData = await intRes.json();
+        if (Array.isArray(intData?.integrations)) setIntegrations(intData.integrations);
       }
     } catch (e) {
       console.error('[AppContext] Error fetching database state:', e);
@@ -316,18 +382,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const res = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
         body: JSON.stringify(bookingData),
       });
+
+      if (res.status === 409) {
+        const conflictErr = await res.json();
+        addToast({
+          type: 'error',
+          title: 'Schedule Conflict',
+          message: conflictErr.error || 'This staff member already has an overlapping appointment.',
+        });
+        throw new Error(conflictErr.error);
+      }
+
       if (res.ok) {
         const created = await res.json();
         setBookings((prev) => [created, ...prev]);
-        addToast({ type: 'success', title: 'Booking Confirmed', message: `Scheduled ${created.serviceName} for ${created.customerName}` });
+        addToast({
+          type: 'success',
+          title: 'Booking Confirmed',
+          message: `Scheduled ${created.serviceName} for ${created.customerName} in Neon DB.`,
+        });
         return created;
       }
-    } catch {
+    } catch (e: any) {
+      if (e?.message?.includes('Conflict')) {
+        throw e;
+      }
       addToast({ type: 'error', title: 'Booking Failed', message: 'Failed to save booking.' });
     }
+
     const fallback: Booking = {
       id: `bk-${Date.now()}`,
       organizationId: session.organizationId,
@@ -336,10 +424,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       customerPhone: bookingData.customerPhone || '+91 98000 11122',
       serviceId: bookingData.serviceId || services[0]?.id || 'srv-201',
       serviceName: bookingData.serviceName || services[0]?.name || 'Spa Service',
-      staffId: 'stf-1',
-      staffName: 'Priya Patel',
-      startTime: new Date().toISOString(),
-      endTime: new Date(Date.now() + 3600000).toISOString(),
+      staffId: bookingData.staffId || 'stf-1',
+      staffName: bookingData.staffName || 'Priya Patel',
+      startTime: bookingData.startTime ? new Date(bookingData.startTime).toISOString() : new Date().toISOString(),
+      endTime: bookingData.endTime ? new Date(bookingData.endTime).toISOString() : new Date(Date.now() + 3600000).toISOString(),
       status: 'CONFIRMED',
       paymentStatus: 'UNPAID',
       totalAmount: bookingData.totalAmount || 1499,
@@ -347,6 +435,128 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString(),
     };
     setBookings((prev) => [fallback, ...prev]);
+    return fallback;
+  };
+
+  const addService = async (serviceData: Partial<Service>): Promise<Service> => {
+    try {
+      const res = await fetch('/api/services', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify(serviceData),
+      });
+
+      if (res.ok) {
+        const created = await res.json();
+        setServices((prev) => [...prev, created]);
+        addToast({
+          type: 'success',
+          title: 'Service Added',
+          message: `"${created.name}" added to service catalog in Neon DB.`,
+        });
+        return created;
+      }
+    } catch (e) {
+      console.error('[addService] Error:', e);
+    }
+
+    const fallback: Service = {
+      id: `srv-${Date.now()}`,
+      organizationId: session.organizationId,
+      name: serviceData.name || 'New Service',
+      description: serviceData.description || 'Custom service offering',
+      category: serviceData.category || 'General',
+      durationMinutes: serviceData.durationMinutes || 60,
+      price: serviceData.price || 999,
+      isActive: true,
+    };
+    setServices((prev) => [...prev, fallback]);
+    addToast({ type: 'success', title: 'Service Added', message: `Added "${fallback.name}"` });
+    return fallback;
+  };
+
+  const addStaff = async (staffData: Partial<Staff>): Promise<Staff> => {
+    try {
+      const res = await fetch('/api/staff', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify(staffData),
+      });
+
+      if (res.ok) {
+        const created = await res.json();
+        setStaff((prev) => [...prev, created]);
+        addToast({
+          type: 'success',
+          title: 'Staff Member Registered',
+          message: `${created.name} added to team roster in Neon DB.`,
+        });
+        return created;
+      }
+    } catch (e) {
+      console.error('[addStaff] Error:', e);
+    }
+
+    const fallback: Staff = {
+      id: `stf-${Date.now()}`,
+      organizationId: session.organizationId,
+      name: staffData.name || 'Team Member',
+      role: staffData.role || 'Therapist',
+      email: staffData.email || 'staff@businessos.app',
+      phone: staffData.phone || '+91 98000 00000',
+      avatarUrl: staffData.avatarUrl,
+      assignedServices: staffData.assignedServices || [],
+      isAvailable: true,
+    };
+    setStaff((prev) => [...prev, fallback]);
+    addToast({ type: 'success', title: 'Staff Member Added', message: `Added ${fallback.name}` });
+    return fallback;
+  };
+
+  const addLead = async (leadData: Partial<Lead>): Promise<Lead> => {
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify(leadData),
+      });
+
+      if (res.ok) {
+        const created = await res.json();
+        setLeads((prev) => [created, ...prev]);
+        addToast({
+          type: 'success',
+          title: 'Lead Registered',
+          message: `${created.name} added to pipeline in Neon DB.`,
+        });
+        return created;
+      }
+    } catch (e) {
+      console.error('[addLead] Error:', e);
+    }
+
+    const fallback: Lead = {
+      id: `lead-${Date.now()}`,
+      organizationId: session.organizationId,
+      name: leadData.name || 'New Lead',
+      email: leadData.email || 'lead@example.com',
+      phone: leadData.phone || '+91 90000 00000',
+      source: leadData.source || 'WEBSITE',
+      stage: (leadData.stage as any) || 'NEW',
+      estimatedValue: leadData.estimatedValue || 2000,
+      notes: leadData.notes || '',
+      createdAt: new Date().toISOString(),
+    };
+    setLeads((prev) => [fallback, ...prev]);
     return fallback;
   };
 
@@ -385,7 +595,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return fallback;
   };
 
-  const updateWebsiteBlock = (blockId: string, content: any) => {
+  const updateWebsiteBlock = async (blockId: string, content: any): Promise<void> => {
     setWebsite((prev) => {
       const updatedPages = prev.pages.map((pg) => ({
         ...pg,
@@ -393,21 +603,82 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }));
       return { ...prev, pages: updatedPages, updatedAt: new Date().toISOString() };
     });
-    addToast({ type: 'info', title: 'Website Updated', message: 'Page block layout updated successfully.' });
+
+    try {
+      const res = await fetch(`/api/website/blocks/${blockId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify(content),
+      });
+
+      if (res.ok) {
+        addToast({ type: 'success', title: 'Block Saved', message: 'Website block changes persisted to database.' });
+        return;
+      }
+    } catch (e) {
+      console.error('[updateWebsiteBlock] Error:', e);
+    }
+    addToast({ type: 'info', title: 'Website Updated', message: 'Page block layout updated locally.' });
   };
 
-  const publishWebsiteToggle = () => {
-    setWebsite((prev) => ({ ...prev, isPublished: !prev.isPublished }));
+  const publishWebsiteToggle = async (): Promise<void> => {
+    const nextState = !website.isPublished;
+    setWebsite((prev) => ({ ...prev, isPublished: nextState }));
+
+    try {
+      const res = await fetch('/api/website', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ isPublished: nextState }),
+      });
+
+      if (res.ok) {
+        addToast({
+          type: 'success',
+          title: nextState ? 'Website Live' : 'Website Unpublished',
+          message: nextState
+            ? `Published to /site/${website.subdomain} (Neon DB updated).`
+            : 'Site taken offline (Neon DB updated).',
+        });
+        return;
+      }
+    } catch (e) {
+      console.error('[publishWebsiteToggle] Error:', e);
+    }
+
     addToast({
-      type: 'success',
-      title: website.isPublished ? 'Website Unpublished' : 'Website Live',
-      message: website.isPublished ? 'Site taken offline' : `Published to https://${website.subdomain}.businessos.app`,
+      type: 'info',
+      title: nextState ? 'Website Live (Local)' : 'Website Unpublished (Local)',
+      message: nextState ? `Published to /site/${website.subdomain}` : 'Site taken offline',
     });
   };
 
-  const replyToReview = (reviewId: string, responseText: string) => {
+  const replyToReview = async (reviewId: string, responseText: string): Promise<void> => {
     setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, responseText } : r)));
-    addToast({ type: 'success', title: 'Review Response Posted', message: 'Published AI response.' });
+    try {
+      const res = await fetch(`/api/marketing/reviews/${reviewId}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ responseText }),
+      });
+
+      if (res.ok) {
+        addToast({ type: 'success', title: 'Review Response Posted', message: 'Published reply to Google Business in Neon DB.' });
+      } else {
+        addToast({ type: 'success', title: 'Review Response Posted', message: 'Published AI response.' });
+      }
+    } catch {
+      addToast({ type: 'success', title: 'Review Response Posted', message: 'Published AI response.' });
+    }
   };
 
   const createInvoice = (customerName: string, amount: number): Invoice => {
@@ -427,11 +698,135 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setInvoices((prev) => [inv, ...prev]);
     addToast({ type: 'success', title: 'Invoice Generated', message: `Issued ${inv.invoiceNumber} for ₹${inv.total.toLocaleString()}` });
+
+    // Persist to Neon DB asynchronously via billing API
+    fetch('/api/billing/create-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-saarthi-user-email': session.userEmail,
+      },
+      body: JSON.stringify({
+        amount,
+        customerName,
+        customerEmail: 'client@example.com',
+        invoiceNumber: inv.invoiceNumber,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.invoiceId) {
+          setInvoices((prev) =>
+            prev.map((item) =>
+              item.invoiceNumber === inv.invoiceNumber
+                ? { ...item, id: data.invoiceId, razorpayOrderId: data.orderId }
+                : item
+            )
+          );
+        }
+      })
+      .catch((err) => console.warn('[createInvoice] DB persist error:', err));
+
     return inv;
   };
 
-  const addNote = (customerId: string, content: string): Note => {
-    const newNote: Note = {
+  const createBillingOrder = async (plan: string, amount: number): Promise<any> => {
+    try {
+      const res = await fetch('/api/billing/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ plan, amount }),
+      });
+      if (!res.ok) throw new Error('Order creation failed');
+      const data = await res.json();
+      return data;
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Payment Error', message: err.message || 'Could not initiate payment' });
+      throw err;
+    }
+  };
+
+  const verifyPayment = async (payload: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    plan?: string;
+    invoiceId?: string;
+  }): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/billing/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok && data.verified) {
+        addToast({ type: 'success', title: 'Payment Successful', message: 'Subscription upgraded & invoice marked PAID.' });
+        if (data.subscription) setSubscription(data.subscription);
+        setInvoices((prev) =>
+          prev.map((inv) =>
+            inv.razorpayOrderId === payload.razorpay_order_id || inv.id === payload.invoiceId
+              ? { ...inv, status: 'PAID', razorpayPaymentId: payload.razorpay_payment_id }
+              : inv
+          )
+        );
+        return true;
+      } else {
+        addToast({ type: 'error', title: 'Payment Verification Failed', message: data.error || 'Signature check failed' });
+        return false;
+      }
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Verification Error', message: err.message || 'Could not verify payment' });
+      return false;
+    }
+  };
+
+  const toggleIntegration = async (provider: string, status?: string): Promise<void> => {
+    const current = integrations.find((i) => i.provider === provider);
+    const newStatus = status || (current?.status === 'CONNECTED' ? 'DISCONNECTED' : 'CONNECTED');
+
+    // Optimistic UI update
+    setIntegrations((prev) => {
+      const exists = prev.some((i) => i.provider === provider);
+      if (exists) {
+        return prev.map((i) => (i.provider === provider ? { ...i, status: newStatus } : i));
+      }
+      return [...prev, { id: `int-${Date.now()}`, provider, status: newStatus, organizationId: session.organizationId }];
+    });
+
+    try {
+      const res = await fetch('/api/integrations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ provider, status: newStatus }),
+      });
+      if (res.ok) {
+        addToast({
+          type: 'success',
+          title: 'Integration Updated',
+          message: `${provider.replace(/_/g, ' ')} is now ${newStatus}.`,
+        });
+      }
+    } catch {
+      addToast({
+        type: 'info',
+        title: 'Integration Updated',
+        message: `${provider.replace(/_/g, ' ')} status updated locally.`,
+      });
+    }
+  };
+
+  const addNote = async (customerId: string, content: string): Promise<Note> => {
+    const fallbackNote: Note = {
       id: `nte-${Date.now()}`,
       organizationId: session.organizationId,
       customerId,
@@ -439,14 +834,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       content,
       createdAt: new Date().toISOString(),
     };
-    setNotes((prev) => [newNote, ...prev]);
+
+    try {
+      const res = await fetch(`/api/customers/${customerId}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ content }),
+      });
+
+      if (res.ok) {
+        const persisted = await res.json();
+        setNotes((prev) => [persisted, ...prev]);
+        addToast({ type: 'success', title: 'Note Saved', message: 'Added note to customer profile in Neon DB.' });
+        return persisted;
+      }
+    } catch (e) {
+      console.error('[addNote] Error:', e);
+    }
+
+    setNotes((prev) => [fallbackNote, ...prev]);
     addToast({ type: 'success', title: 'Note Saved', message: 'Added note to customer profile.' });
-    return newNote;
+    return fallbackNote;
   };
 
-  const updateLeadStage = (leadId: string, newStage: string) => {
+  const updateLeadStage = async (leadId: string, newStage: string): Promise<void> => {
     setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, stage: newStage as any } : l)));
-    addToast({ type: 'info', title: 'Pipeline Updated', message: `Lead moved to ${newStage}` });
+    try {
+      const res = await fetch(`/api/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ stage: newStage }),
+      });
+
+      if (res.ok) {
+        addToast({ type: 'info', title: 'Pipeline Updated', message: `Lead moved to ${newStage} in Neon DB.` });
+      } else {
+        addToast({ type: 'info', title: 'Pipeline Updated', message: `Lead moved to ${newStage}` });
+      }
+    } catch {
+      addToast({ type: 'info', title: 'Pipeline Updated', message: `Lead moved to ${newStage}` });
+    }
   };
 
   const bulkSendCampaign = (customerIds: string[]) => {
@@ -469,19 +902,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         campaigns,
         reviews,
         services,
+        staff,
         website,
         invoices,
+        subscription,
+        integrations,
         notes,
         activities,
         conversations,
         refreshData,
         addCustomer,
+        addLead,
         addBooking,
+        addService,
+        addStaff,
         addCampaign,
         updateWebsiteBlock,
         publishWebsiteToggle,
         replyToReview,
         createInvoice,
+        createBillingOrder,
+        verifyPayment,
+        toggleIntegration,
         addNote,
         updateLeadStage,
         bulkSendCampaign,

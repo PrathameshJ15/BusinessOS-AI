@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "node dist/main.js || tsc && node dist/main.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test src/tests/*.spec.ts"
   },
   "dependencies": {
     "@businessos/ai": "*",

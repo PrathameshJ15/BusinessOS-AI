@@ -117,23 +117,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Retrieve Business Context from Neon PostgreSQL
-    const business = await getBusinessForUser(user.id);
+    // 3. Retrieve Business Context and Live Operational Snapshot from Neon PostgreSQL
+    const [business, customersCount, bookingsCount, servicesList] = await Promise.all([
+      getBusinessForUser(user.id),
+      prisma.customer.count({ where: { organizationId: user.organizationId } }).catch(() => 0),
+      prisma.booking.count({ where: { organizationId: user.organizationId } }).catch(() => 0),
+      prisma.service.findMany({
+        where: { organizationId: user.organizationId, isActive: true },
+        select: { name: true, price: true },
+        take: 5,
+      }).catch(() => []),
+    ]);
+
     let systemPromptWithContext = BASE_SYSTEM_PROMPT;
 
-    if (business) {
-      const bizContext = `\n\nCURRENT BUSINESS CONTEXT:
-- Business Name: ${business.name}
-- Industry: ${business.industry || 'General Business'}
-- Description: ${business.description || 'N/A'}
-- Target Customers: ${business.targetCustomers || 'N/A'}
-- Products / Services: ${business.productsServices || 'N/A'}
-- Employee Count: ${business.employeeCount || 1}
-- Business Stage: ${business.businessStage || 'GROWTH'}
-Use this context to tailor recommendations specifically for ${business.name}.`;
+    const bizName = business?.name || user.organizationName || 'Your Business';
+    const bizContext = `\n\nCURRENT BUSINESS CONTEXT:
+- Business Name: ${bizName}
+- Industry: ${business?.industry || 'Service SMB'}
+- Description: ${business?.description || 'N/A'}
+- Target Customers: ${business?.targetCustomers || 'N/A'}
+- Active CRM Customers: ${customersCount}
+- Total Scheduled Bookings: ${bookingsCount}
+- Catalog Services: ${servicesList.length > 0 ? servicesList.map((s) => `${s.name} (₹${s.price})`).join(', ') : 'Standard Services'}
+- Employee Count: ${business?.employeeCount || 1}
+- Business Stage: ${business?.businessStage || 'GROWTH'}
+Use this live business context to answer inquiries and tailor recommendations specifically for ${bizName}.`;
 
-      systemPromptWithContext += bizContext;
-    }
+    systemPromptWithContext += bizContext;
 
     // 4. Find or create conversation
     let conversation;

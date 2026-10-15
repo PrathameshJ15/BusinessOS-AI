@@ -52,6 +52,7 @@ export default function MarketingWorkspacePage() {
 
   const [aiContentType, setAiContentType] = useState<'INSTAGRAM' | 'WHATSAPP' | 'GOOGLE_POST'>('INSTAGRAM');
   const [aiPromptTopic, setAiPromptTopic] = useState('');
+  const [isGeneratingSocialCopy, setIsGeneratingSocialCopy] = useState(false);
   const [generatedAiOutput, setGeneratedAiOutput] = useState('');
   const [reviewReplyInputs, setReviewReplyInputs] = useState<{ [key: string]: string }>({});
 
@@ -99,17 +100,60 @@ export default function MarketingWorkspacePage() {
     setIsCreateModalOpen(false);
   };
 
-  const handleGenerateSocialCopy = () => {
-    if (!aiPromptTopic) return;
-    setGeneratedAiOutput(
-      `✨ ${aiPromptTopic.toUpperCase()} ✨\n\nExperience luxury wellness tailored just for you. Our expert therapists at Lumina Luxe Spa bring you rejuvenation like never before.\n\n👉 Book your appointment today via link in bio or WhatsApp us!\n\n#LuminaLuxe #SpaWellness #SelfCare #SalonLuxury #SaarthiAI`
-    );
-    addToast({ type: 'success', title: 'Social Content Drafted', message: 'Generated AI post copy.' });
+  const handleGenerateSocialCopy = async () => {
+    if (!aiPromptTopic.trim()) return;
+    setIsGeneratingSocialCopy(true);
+    setGeneratedAiOutput('');
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Write a high-converting, polished social media marketing post for platform: ${aiContentType}. Topic or promotion: "${aiPromptTopic.trim()}". Include an eye-catching opening hook, key customer benefits, urgency, a direct call to action with booking details, and 5-8 relevant hashtags.`,
+        }),
+      });
+
+      if (res.ok && res.body) {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (!dataStr) continue;
+              try {
+                const parsed = JSON.parse(dataStr);
+                if (parsed.type === 'content' && parsed.content) {
+                  accumulated += parsed.content;
+                  setGeneratedAiOutput(accumulated);
+                }
+              } catch {}
+            }
+          }
+        }
+        addToast({ type: 'success', title: 'Social Content Drafted', message: 'Generated AI post copy with Saarthi AI.' });
+      } else {
+        throw new Error('AI generation stream failed');
+      }
+    } catch {
+      setGeneratedAiOutput(
+        `✨ ${aiPromptTopic.toUpperCase()} ✨\n\nExperience luxury wellness tailored just for you. Our expert therapists bring you rejuvenation like never before.\n\n👉 Book your appointment today via link in bio or WhatsApp us!\n\n#BusinessWellness #SelfCare #LuxuryService #SaarthiAI`
+      );
+      addToast({ type: 'success', title: 'Social Content Drafted', message: 'Generated post copy (fallback template).' });
+    } finally {
+      setIsGeneratingSocialCopy(false);
+    }
   };
 
-  const handlePostReviewReply = (reviewId: string) => {
-    const text = reviewReplyInputs[reviewId] || 'Thank you for visiting Lumina Luxe Spa! We look forward to serving you again soon.';
-    replyToReview(reviewId, text);
+  const handlePostReviewReply = async (reviewId: string) => {
+    const text = reviewReplyInputs[reviewId] || 'Thank you for visiting! We look forward to serving you again soon.';
+    await replyToReview(reviewId, text);
+    setReviewReplyInputs((prev) => ({ ...prev, [reviewId]: '' }));
   };
 
   const totalDelivered = campaigns.reduce((acc, c) => acc + c.deliveredCount, 0);
@@ -295,7 +339,8 @@ export default function MarketingWorkspacePage() {
 
             <button
               onClick={handleGenerateSocialCopy}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2"
+              disabled={isGeneratingSocialCopy || !aiPromptTopic.trim()}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
               <span>Generate AI Post Draft</span>

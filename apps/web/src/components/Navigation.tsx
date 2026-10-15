@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '../context/AppContext';
@@ -155,6 +155,56 @@ export const SidebarNav: React.FC = () => {
 
 export const HeaderNav: React.FC = () => {
   const { session, theme, toggleTheme } = useApp();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifs, setShowNotifs] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications', {
+        headers: { 'x-saarthi-user-email': session.userEmail },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setNotifications(data);
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [session.userEmail]);
+
+  const handleMarkAllRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ all: true }),
+      });
+    } catch {}
+  };
+
+  const handleMarkOneRead = async (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-saarthi-user-email': session.userEmail,
+        },
+        body: JSON.stringify({ id }),
+      });
+    } catch {}
+  };
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-30 px-6 flex items-center justify-between">
@@ -173,7 +223,7 @@ export const HeaderNav: React.FC = () => {
       </div>
 
       {/* Right Action Icons, Dark Mode Switcher & Organization */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 relative">
         <button
           onClick={toggleTheme}
           title="Toggle Dark Mode"
@@ -188,13 +238,66 @@ export const HeaderNav: React.FC = () => {
           <span>{session.organizationName}</span>
         </div>
 
-        <button
-          aria-label="Notifications"
-          className="relative p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-600"></span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowNotifs((prev) => !prev);
+              if (!showNotifs) fetchNotifications();
+            }}
+            aria-label="Notifications"
+            className="relative p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-600"></span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown Popover */}
+          {showNotifs && (
+            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-4 z-50 text-xs space-y-3 font-sans">
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
+                <span className="font-bold text-zinc-900 dark:text-white">Notifications ({unreadCount})</span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+
+              {notifications.length === 0 ? (
+                <p className="text-zinc-400 text-center py-4 text-xs">No notifications yet.</p>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+                  {notifications.slice(0, 10).map((n) => (
+                    <div
+                      key={n.id}
+                      onClick={() => !n.isRead && handleMarkOneRead(n.id)}
+                      className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${
+                        n.isRead
+                          ? 'bg-zinc-50/50 dark:bg-zinc-800/20 border-transparent text-zinc-400'
+                          : 'bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[11px] truncate">{n.title}</span>
+                        {!n.isRead && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-2">
+                        {n.message}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

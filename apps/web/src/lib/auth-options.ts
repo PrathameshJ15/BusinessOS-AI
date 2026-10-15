@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
+import { ROLE_PERMISSIONS } from '@businessos/auth';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || 'businessos-super-secret-nextauth-session-key-32-chars',
@@ -60,41 +61,46 @@ export const authOptions: NextAuthOptions = {
 
         if (!dbUser) {
           const displayName = user.name || user.email.split('@')[0];
+          const name = displayName.charAt(0).toUpperCase() + displayName.slice(1);
           dbUser = await prisma.user.create({
             data: {
               email: user.email,
-              name: displayName,
+              name,
               image: user.image || null,
               avatarUrl: user.image || null,
-              onboardingCompleted: true,
+              onboardingCompleted: false,
             },
             include: { memberships: true },
           });
 
-          // Link to default or active organization
-          const org = await prisma.organization.findFirst();
-          if (org) {
-            await prisma.membership.create({
+          // Check if predefined demo account
+          const isDemoAccount = ['prathamesh@test.com', 'krushna@test.com', 'admin@test.com', 'ananya@luminaluxe.com'].includes(user.email.toLowerCase());
+          let orgId = isDemoAccount ? 'org-lumina-101' : null;
+
+          if (!orgId) {
+            // Provision dedicated isolated Organization for new user
+            const orgSlug = `org-${dbUser.id.slice(-8).toLowerCase()}-${Math.random().toString(36).substring(2, 6)}`;
+            const newOrg = await prisma.organization.create({
               data: {
-                userId: dbUser.id,
-                organizationId: org.id,
-                role: 'OWNER',
-                permissions: [
-                  'org:read',
-                  'org:write',
-                  'customers:read',
-                  'customers:write',
-                  'bookings:read',
-                  'bookings:write',
-                  'marketing:read',
-                  'marketing:write',
-                  'website:read',
-                  'website:write',
-                  'ai:execute',
-                ],
+                name: `${name}'s Workspace`,
+                slug: orgSlug,
+                plan: 'PRO',
+                status: 'ACTIVE',
+                currency: 'INR',
+                timezone: 'Asia/Kolkata',
               },
             });
+            orgId = newOrg.id;
           }
+
+          await prisma.membership.create({
+            data: {
+              userId: dbUser.id,
+              organizationId: orgId,
+              role: 'OWNER',
+              permissions: ROLE_PERMISSIONS['OWNER'],
+            },
+          });
         }
       } catch (err) {
         console.warn('[NextAuth signIn] Database sync warning (using fallback store):', err);
@@ -127,7 +133,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (!token.organizationId) {
-          token.organizationId = 'org-lumina-101';
+          const isDemoAccount = ['prathamesh@test.com', 'krushna@test.com', 'admin@test.com', 'ananya@luminaluxe.com'].includes(token.email?.toLowerCase() || '');
+          token.organizationId = isDemoAccount ? 'org-lumina-101' : `org-${token.id || 'personal'}`;
         }
         if (!token.role) {
           token.role = 'OWNER';
@@ -139,7 +146,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id || token.sub;
-        (session.user as any).organizationId = token.organizationId || 'org-lumina-101';
+        (session.user as any).organizationId = token.organizationId;
         (session.user as any).role = token.role || 'OWNER';
       }
       return session;

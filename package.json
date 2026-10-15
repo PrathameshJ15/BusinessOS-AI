@@ -11,7 +11,8 @@
     "dev:api": "npm run dev --workspace=apps/api",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "node --test apps/api/src/tests/*.spec.ts"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

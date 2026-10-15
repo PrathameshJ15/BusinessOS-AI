@@ -1,4 +1,5 @@
 import { prisma } from '../prisma';
+import { ROLE_PERMISSIONS } from '@businessos/auth';
 
 export interface BusinessOnboardingInput {
   name: string;
@@ -73,10 +74,126 @@ export async function createBusinessForUser(userId: string, input: BusinessOnboa
     });
 
     // 3. Set User onboardingCompleted = true
-    await tx.user.update({
+    const userRecord = await tx.user.update({
       where: { id: userId },
       data: { onboardingCompleted: true },
     });
+
+    // 4. Generate clean unique slug for the organization
+    const baseSlug = input.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'workspace';
+    const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+    const slug = `${baseSlug}-${uniqueSuffix}`;
+
+    // 5. Create or find Organization and link to User via Membership
+    const existingMembership = await tx.membership.findFirst({
+      where: { userId },
+      include: { organization: true },
+    });
+
+    let organizationId: string;
+
+    if (existingMembership) {
+      await tx.organization.update({
+        where: { id: existingMembership.organizationId },
+        data: { name: input.name.trim() },
+      });
+      organizationId = existingMembership.organizationId;
+    } else {
+      const org = await tx.organization.create({
+        data: {
+          name: input.name.trim(),
+          slug,
+          plan: 'PRO',
+          status: 'ACTIVE',
+          currency: 'INR',
+          timezone: 'Asia/Kolkata',
+          memberships: {
+            create: {
+              userId,
+              role: 'OWNER',
+              permissions: ROLE_PERMISSIONS['OWNER'],
+            },
+          },
+        },
+      });
+      organizationId = org.id;
+    }
+
+    // 6. Create / Update BusinessProfile for the Organization
+    await tx.businessProfile.upsert({
+      where: { organizationId },
+      create: {
+        organizationId,
+        businessType: input.type?.trim() || 'SALON',
+        tagline: input.description?.trim() || `${input.name} - Excellence in Service`,
+        description: input.description?.trim() || '',
+        phone: input.phone?.trim() || '+91 90000 00000',
+        email: input.email?.trim() || 'contact@example.com',
+        address: input.address?.trim() || 'Commercial Area',
+        city: input.city?.trim() || 'Mumbai',
+        state: input.state?.trim() || 'Maharashtra',
+        zipCode: '400001',
+        websiteUrl: input.website?.trim() || null,
+      },
+      update: {
+        businessType: input.type?.trim() || 'SALON',
+        tagline: input.description?.trim() || `${input.name} - Excellence in Service`,
+        description: input.description?.trim() || '',
+        phone: input.phone?.trim() || '+91 90000 00000',
+        email: input.email?.trim() || 'contact@example.com',
+        address: input.address?.trim() || 'Commercial Area',
+        city: input.city?.trim() || 'Mumbai',
+        state: input.state?.trim() || 'Maharashtra',
+        websiteUrl: input.website?.trim() || null,
+      },
+    });
+
+    // 7. Ensure default Website exists for the Organization
+    await tx.website.upsert({
+      where: { organizationId },
+      create: {
+        organizationId,
+        domainName: `${slug}.businessos.app`,
+        subdomain: slug,
+        isPublished: false,
+        themeColor: '#0F172A',
+        fontFamily: 'Inter',
+      },
+      update: {
+        domainName: `${slug}.businessos.app`,
+      },
+    });
+
+    // 8. Ensure default Service exists for bookings
+    const serviceCount = await tx.service.count({ where: { organizationId } });
+    if (serviceCount === 0) {
+      await tx.service.create({
+        data: {
+          organizationId,
+          name: input.productsServices?.split(',')[0]?.trim() || 'Consultation & Service',
+          description: 'Standard client consultation and initial service session.',
+          category: input.type || 'General',
+          durationMinutes: 45,
+          price: 999,
+          isActive: true,
+        },
+      });
+    }
+
+    // 9. Ensure default Staff exists for appointments
+    const staffCount = await tx.staff.count({ where: { organizationId } });
+    if (staffCount === 0) {
+      await tx.staff.create({
+        data: {
+          organizationId,
+          name: userRecord?.name || 'Primary Specialist',
+          role: 'Lead Specialist',
+          email: userRecord?.email || 'staff@example.com',
+          phone: input.phone?.trim() || '+91 90000 00000',
+          isAvailable: true,
+        },
+      });
+    }
 
     return business;
   });
@@ -92,7 +209,7 @@ export async function updateBusiness(businessId: string, userId: string, input: 
     throw new Error('Unauthorized: Only business owners can update business details.');
   }
 
-  return await prisma.business.update({
+  const updatedBiz = await prisma.business.update({
     where: { id: businessId },
     data: {
       ...(input.name && { name: input.name.trim() }),
@@ -112,4 +229,34 @@ export async function updateBusiness(businessId: string, userId: string, input: 
       ...(input.taxId !== undefined && { taxId: input.taxId?.trim() || null }),
     },
   });
+
+  // Synchronize with Organization & BusinessProfile if user has an active membership
+  const userOrg = await prisma.membership.findFirst({
+    where: { userId },
+  });
+
+  if (userOrg) {
+    if (input.name) {
+      await prisma.organization.update({
+        where: { id: userOrg.organizationId },
+        data: { name: input.name.trim() },
+      });
+    }
+
+    await prisma.businessProfile.updateMany({
+      where: { organizationId: userOrg.organizationId },
+      data: {
+        ...(input.type && { businessType: input.type.trim() }),
+        ...(input.description !== undefined && { description: input.description.trim() }),
+        ...(input.phone && { phone: input.phone.trim() }),
+        ...(input.email && { email: input.email.trim() }),
+        ...(input.address && { address: input.address.trim() }),
+        ...(input.city && { city: input.city.trim() }),
+        ...(input.state && { state: input.state.trim() }),
+        ...(input.website && { websiteUrl: input.website.trim() }),
+      },
+    });
+  }
+
+  return updatedBiz;
 }

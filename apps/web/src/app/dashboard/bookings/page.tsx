@@ -17,35 +17,45 @@ import {
 import { mockStaff } from '@businessos/database';
 
 export default function BookingsPage() {
-  const { bookings, services, customers, addBooking, createInvoice, canAccess, addToast } = useApp();
+  const { bookings, services, staff, customers, addBooking, createInvoice, canAccess, addToast } = useApp();
+  const availableStaff = staff && staff.length > 0 ? staff : mockStaff;
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState(customers[0]?.id || '');
   const [selectedServiceId, setSelectedServiceId] = useState(services[0]?.id || '');
-  const [selectedStaffId, setSelectedStaffId] = useState(mockStaff[0]?.id || '');
+  const [selectedStaffId, setSelectedStaffId] = useState(availableStaff[0]?.id || '');
   const [bookingTime, setBookingTime] = useState('Tomorrow 11:00 AM');
   const [notes, setNotes] = useState('');
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cust = customers.find((c) => c.id === selectedCustomerId) || customers[0];
     const srv = services.find((s) => s.id === selectedServiceId) || services[0];
-    const stf = mockStaff.find((s) => s.id === selectedStaffId) || mockStaff[0];
+    const stf = availableStaff.find((s) => s.id === selectedStaffId) || availableStaff[0];
 
-    addBooking({
-      customerId: cust.id,
-      customerName: cust.name,
-      customerPhone: cust.phone,
-      serviceId: srv.id,
-      serviceName: srv.name,
-      staffId: stf.id,
-      staffName: stf.name,
-      totalAmount: srv.price,
-      notes,
-    });
+    if (!cust || !srv) {
+      addToast({ type: 'warning', title: 'Missing Details', message: 'Please select a customer and service.' });
+      return;
+    }
 
-    setIsBookingModalOpen(false);
+    try {
+      await addBooking({
+        customerId: cust.id,
+        customerName: cust.name,
+        customerPhone: cust.phone,
+        serviceId: srv.id,
+        serviceName: srv.name,
+        staffId: stf.id,
+        staffName: stf.name,
+        totalAmount: srv.price,
+        notes: notes || bookingTime,
+      });
+
+      setIsBookingModalOpen(false);
+    } catch {
+      // Conflict or failure toast notification handled in addBooking
+    }
   };
 
   const handleGeneratePaymentLink = (customerName: string, amount: number) => {
@@ -110,11 +120,11 @@ export default function BookingsPage() {
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Staff Roster & Capacity</h3>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">{mockStaff.length} On Duty</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">{availableStaff.length} On Duty</span>
           </div>
 
           <div className="space-y-2.5">
-            {mockStaff.map((staff) => (
+            {availableStaff.map((staff) => (
               <div key={staff.id} className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center">
@@ -230,7 +240,7 @@ export default function BookingsPage() {
                   onChange={(e) => setSelectedStaffId(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
                 >
-                  {mockStaff.map((stf) => (
+                  {availableStaff.map((stf) => (
                     <option key={stf.id} value={stf.id}>
                       {stf.name} ({stf.role})
                     </option>

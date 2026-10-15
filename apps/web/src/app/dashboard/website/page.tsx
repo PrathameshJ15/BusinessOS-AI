@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 
 export default function AIWebsiteBuilderPage() {
-  const { website, updateWebsiteBlock, publishWebsiteToggle, addCustomer, canAccess, addToast } = useApp();
+  const { website, updateWebsiteBlock, publishWebsiteToggle, addCustomer, canAccess, addToast, refreshData } = useApp();
 
   const [activeTab, setActiveTab] = useState<
     'overview' | 'websites' | 'templates' | 'editor' | 'forms' | 'seo' | 'domains'
@@ -61,16 +61,40 @@ export default function AIWebsiteBuilderPage() {
   const activePage = website.pages[0];
   const selectedBlock = activePage?.blocks.find((b) => b.id === selectedBlockId);
 
-  const handleAiGenerationSubmit = (e: React.FormEvent) => {
+  const handleAiGenerationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsGenerating(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/website/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: genName,
+          industry: genType,
+          services: genServices,
+          theme: genTheme,
+        }),
+      });
+
+      if (res.ok) {
+        setIsAiGeneratorOpen(false);
+        setGenStep(1);
+        addToast({
+          type: 'success',
+          title: 'Website Generated',
+          message: `Custom site live for ${genName} in Neon DB!`,
+        });
+        await refreshData();
+      } else {
+        const err = await res.json();
+        addToast({ type: 'error', title: 'Generation Failed', message: err.error || 'Failed to generate website.' });
+      }
+    } catch {
+      addToast({ type: 'error', title: 'Network Error', message: 'Could not connect to AI Website Builder service.' });
+    } finally {
       setIsGenerating(false);
-      setIsAiGeneratorOpen(false);
-      setGenStep(1);
-      addToast({ type: 'success', title: 'Website Generated', message: `Custom site live for ${genName}` });
-    }, 1500);
+    }
   };
 
   const handleSelectBlockForEditing = (block: WebsiteBlock) => {
@@ -79,9 +103,9 @@ export default function AIWebsiteBuilderPage() {
     setEditingSubheading(block.content.subheading || '');
   };
 
-  const handleSaveBlockEdit = () => {
+  const handleSaveBlockEdit = async () => {
     if (!selectedBlockId) return;
-    updateWebsiteBlock(selectedBlockId, { heading: editingHeading, subheading: editingSubheading });
+    await updateWebsiteBlock(selectedBlockId, { heading: editingHeading, subheading: editingSubheading });
     setSelectedBlockId(null);
   };
 

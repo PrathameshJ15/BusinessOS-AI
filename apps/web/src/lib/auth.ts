@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth-options';
 import { prisma } from './prisma';
+import { ROLE_PERMISSIONS } from '@businessos/auth';
 
 export interface ServerUser {
   id: string;
@@ -9,8 +10,10 @@ export interface ServerUser {
   image?: string | null;
   avatarUrl?: string | null;
   organizationId: string;
+  organizationName?: string;
   role: 'OWNER' | 'MANAGER' | 'STAFF';
   isGoogleAuth?: boolean;
+  onboardingCompleted?: boolean;
 }
 
 const DEFAULT_EMAIL = 'prathamesh@test.com';
@@ -43,7 +46,11 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
   try {
     let user = await prisma.user.findUnique({
       where: { email: targetEmail },
-      include: { memberships: true },
+      include: {
+        memberships: {
+          include: { organization: true },
+        },
+      },
     });
 
     if (!user) {
@@ -58,11 +65,97 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
           image: sessionUser?.image || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
           avatarUrl: sessionUser?.image || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
         },
-        include: { memberships: true },
+        include: {
+          memberships: {
+            include: { organization: true },
+          },
+        },
       });
     }
 
-    const membership = user.memberships[0];
+    let activeOrgId: string = user.memberships[0]?.organizationId || '';
+    let activeRole: 'OWNER' | 'MANAGER' | 'STAFF' = (user.memberships[0]?.role as any) || 'OWNER';
+
+    // If user has no organization membership yet, resolve or provision dedicated isolated organization
+    if (!activeOrgId) {
+      // Check if user has an existing Business from onboarding that needs an Organization
+      const bizUser = await prisma.businessUser.findFirst({
+        where: { userId: user.id },
+        include: { business: true },
+      });
+
+      if (bizUser?.business) {
+        const cleanName = bizUser.business.name.trim();
+        const slug = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 30) + '-' + user.id.slice(-4);
+        const org = await prisma.organization.create({
+          data: {
+            name: cleanName,
+            slug,
+            plan: 'PRO',
+            status: 'ACTIVE',
+            currency: 'INR',
+            timezone: 'Asia/Kolkata',
+            memberships: {
+              create: {
+                userId: user.id,
+                role: 'OWNER',
+                permissions: ROLE_PERMISSIONS['OWNER'],
+              },
+            },
+            profile: {
+              create: {
+                businessType: bizUser.business.type || 'SALON',
+                tagline: bizUser.business.description || `${cleanName} - Excellence in Service`,
+                description: bizUser.business.description || '',
+                phone: bizUser.business.phone || '+91 90000 00000',
+                email: bizUser.business.email || user.email,
+                address: bizUser.business.address || 'Commercial Area',
+                city: bizUser.business.city || 'Mumbai',
+                state: bizUser.business.state || 'Maharashtra',
+                zipCode: '400001',
+                websiteUrl: bizUser.business.website || null,
+              },
+            },
+            websites: {
+              create: {
+                domainName: `${slug}.businessos.app`,
+                subdomain: slug,
+                isPublished: false,
+              },
+            },
+          },
+        });
+        activeOrgId = org.id;
+        activeRole = 'OWNER';
+      } else if (['prathamesh@test.com', 'krushna@test.com', 'admin@test.com', 'ananya@luminaluxe.com'].includes(targetEmail)) {
+        // Seed demo accounts belong to org-lumina-101
+        activeOrgId = 'org-lumina-101';
+      } else {
+        // Brand new user: provision their isolated personal organization
+        const orgSlug = `org-${user.id.slice(-8).toLowerCase()}-${Math.random().toString(36).substring(2, 6)}`;
+        const newOrg = await prisma.organization.create({
+          data: {
+            name: `${user.name}'s Workspace`,
+            slug: orgSlug,
+            plan: 'PRO',
+            status: 'ACTIVE',
+            currency: 'INR',
+            timezone: 'Asia/Kolkata',
+            memberships: {
+              create: {
+                userId: user.id,
+                role: 'OWNER',
+                permissions: ROLE_PERMISSIONS['OWNER'],
+              },
+            },
+          },
+        });
+        activeOrgId = newOrg.id;
+        activeRole = 'OWNER';
+      }
+    }
+
+    const orgName = user.memberships.find(m => m.organizationId === activeOrgId)?.organization?.name || 'Workspace';
 
     return {
       id: user.id,
@@ -70,9 +163,11 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
       email: user.email,
       image: user.image || user.avatarUrl || sessionUser?.image,
       avatarUrl: user.avatarUrl || user.image || sessionUser?.image,
-      organizationId: membership?.organizationId || sessionUser?.organizationId || 'org-lumina-101',
-      role: (membership?.role as any) || sessionUser?.role || 'OWNER',
+      organizationId: activeOrgId,
+      organizationName: orgName,
+      role: activeRole,
       isGoogleAuth: Boolean(sessionUser),
+      onboardingCompleted: user.onboardingCompleted,
     };
   } catch (error) {
     console.error('[getServerUser] Error querying database, returning fallback user context:', error);
@@ -84,6 +179,7 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
       image: sessionUser?.image || null,
       avatarUrl: sessionUser?.image || null,
       organizationId: sessionUser?.organizationId || 'org-lumina-101',
+      organizationName: 'Lumina Luxe Salon & Spa',
       role: sessionUser?.role || 'OWNER',
       isGoogleAuth: Boolean(sessionUser),
     };
