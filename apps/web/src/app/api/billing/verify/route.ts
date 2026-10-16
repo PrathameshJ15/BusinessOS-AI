@@ -11,9 +11,15 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
-    const activeEmailHeader = request.headers.get('x-saarthi-user-email');
-    const cookieEmail = request.cookies.get('saarthi_user_email')?.value;
-    const user = await getServerUser(activeEmailHeader || cookieEmail || undefined);
+    let user: any = null;
+    try {
+      const activeEmailHeader = request.headers.get('x-saarthi-user-email');
+      const cookieEmail = request.cookies.get('saarthi_user_email')?.value;
+      user = await getServerUser(activeEmailHeader || cookieEmail || undefined);
+    } catch {
+      // Public customer checkout context - no session required
+      user = { organizationId: 'org-lumina-101' };
+    }
 
     let body: any;
     try {
@@ -26,8 +32,10 @@ export async function POST(request: NextRequest) {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      plan = 'PRO',
+      plan,
       invoiceId,
+      bookingId,
+      isSubscriptionPayment = false,
     } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -58,18 +66,16 @@ export async function POST(request: NextRequest) {
         updatedInvoice = await prisma.invoice.updateMany({
           where: {
             id: invoiceId,
-            organizationId: user.organizationId,
           },
           data: {
             status: 'PAID',
             razorpayPaymentId: razorpay_payment_id,
           },
         });
-      } else {
+      } else if (razorpay_order_id) {
         updatedInvoice = await prisma.invoice.updateMany({
           where: {
             razorpayOrderId: razorpay_order_id,
-            organizationId: user.organizationId,
           },
           data: {
             status: 'PAID',
@@ -81,38 +87,56 @@ export async function POST(request: NextRequest) {
       console.warn('[POST /api/billing/verify] Could not update invoice in DB:', invErr);
     }
 
-    // 3. Update or Upsert Subscription in Neon DB
-    const planEnum = (plan.toUpperCase() in Plan ? plan.toUpperCase() : 'PRO') as Plan;
-    const planAmounts: Record<string, number> = {
-      FREE: 0,
-      STARTER: 999,
-      PRO: 2999,
-      ENTERPRISE: 7999,
-    };
-    const amount = planAmounts[planEnum] || 2999;
+    // 3. Mark Booking as PAID if bookingId provided
+    if (bookingId) {
+      try {
+        await prisma.booking.updateMany({
+          where: {
+            id: bookingId,
+          },
+          data: {
+            paymentStatus: 'PAID',
+          },
+        });
+      } catch (bkErr) {
+        console.warn('[POST /api/billing/verify] Could not update booking in DB:', bkErr);
+      }
+    }
 
+    // 4. Update or Upsert Subscription in Neon DB only if this is a subscription checkout
+    const planEnum = (plan && plan.toUpperCase() in Plan ? plan.toUpperCase() : 'PRO') as Plan;
     let updatedSubscription = null;
-    try {
-      updatedSubscription = await prisma.subscription.upsert({
-        where: { organizationId: user.organizationId },
-        update: {
-          plan: planEnum,
-          status: 'ACTIVE',
-          amount,
-          currency: 'INR',
-          razorpaySubscriptionId: razorpay_payment_id,
-        },
-        create: {
-          organizationId: user.organizationId,
-          plan: planEnum,
-          status: 'ACTIVE',
-          amount,
-          currency: 'INR',
-          razorpaySubscriptionId: razorpay_payment_id,
-        },
-      });
-    } catch (subErr) {
-      console.warn('[POST /api/billing/verify] Could not upsert subscription in DB:', subErr);
+    if (isSubscriptionPayment && plan) {
+      const planAmounts: Record<string, number> = {
+        FREE: 0,
+        STARTER: 999,
+        PRO: 2999,
+        ENTERPRISE: 7999,
+      };
+      const amount = planAmounts[planEnum] || 2999;
+
+      try {
+        updatedSubscription = await prisma.subscription.upsert({
+          where: { organizationId: user.organizationId },
+          update: {
+            plan: planEnum,
+            status: 'ACTIVE',
+            amount,
+            currency: 'INR',
+            razorpaySubscriptionId: razorpay_payment_id,
+          },
+          create: {
+            organizationId: user.organizationId,
+            plan: planEnum,
+            status: 'ACTIVE',
+            amount,
+            currency: 'INR',
+            razorpaySubscriptionId: razorpay_payment_id,
+          },
+        });
+      } catch (subErr) {
+        console.warn('[POST /api/billing/verify] Could not upsert subscription in DB:', subErr);
+      }
     }
 
     return NextResponse.json({

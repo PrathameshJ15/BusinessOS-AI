@@ -22,7 +22,8 @@ module.exports = {
       fontFamily: {
         display: ['var(--font-display)', 'Outfit', 'system-ui', 'sans-serif'],
         sans: ['var(--font-body)', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        devanagari: ['var(--font-devanagari)', 'Noto Sans Devanagari', 'sans-serif'],
+        devanagari: ['var(--font-devanagari)', 'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', 'sans-serif'],
+        multilingual: ['var(--font-multilingual)', 'Plus Jakarta Sans', 'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {

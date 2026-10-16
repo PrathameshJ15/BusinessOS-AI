@@ -224,3 +224,6 @@ export function createAIService(provider: AIProvider = 'openai'): IAIService {
       return new BaseAIProvider('mock');
   }
 }
+
+export * from './prompts/master-system-prompt';
+

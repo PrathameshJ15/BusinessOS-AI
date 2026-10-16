@@ -17,7 +17,9 @@ import {
   Scissors,
   Heart,
   Globe,
+  MessageSquare,
 } from 'lucide-react';
+import { buildWhatsAppClickToChat } from '@/lib/whatsapp';
 
 interface SiteData {
   id: string;
@@ -33,6 +35,11 @@ interface SiteData {
   address: string;
   blocks: any[];
   services: any[];
+  whatsappSettings?: {
+    phoneNumber: string;
+    ctaLabel: string;
+    visitorMessage: string;
+  } | null;
 }
 
 export default function PublicWebsitePage() {
@@ -150,7 +157,7 @@ export default function PublicWebsitePage() {
             <p className="text-[11px] text-slate-400 font-medium">{site.tagline}</p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <a
               href={`tel:${site.phone}`}
               className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors"
@@ -158,6 +165,24 @@ export default function PublicWebsitePage() {
               <Phone className="w-3.5 h-3.5 text-emerald-400" />
               <span>{site.phone}</span>
             </a>
+            {site.whatsappSettings && (
+              <a
+                href={buildWhatsAppClickToChat(site.whatsappSettings.phoneNumber, site.whatsappSettings.visitorMessage)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  fetch('/api/analytics/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eventType: 'WHATSAPP_CLICK', referrerHost: typeof window !== 'undefined' ? window.location.hostname : '' }),
+                  }).catch(() => {});
+                }}
+                className="hidden md:flex items-center gap-1.5 px-3.5 py-2 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs rounded-xl shadow transition-all"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>{site.whatsappSettings.ctaLabel || 'Chat on WhatsApp'}</span>
+              </a>
+            )}
             <a
               href="#book"
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-all"
@@ -193,6 +218,24 @@ export default function PublicWebsitePage() {
               <Calendar className="w-4 h-4" />
               <span>{heroBlock?.content?.ctaText || 'Reserve Your Visit'}</span>
             </a>
+            {site.whatsappSettings && (
+              <a
+                href={buildWhatsAppClickToChat(site.whatsappSettings.phoneNumber, site.whatsappSettings.visitorMessage)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  fetch('/api/analytics/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eventType: 'WHATSAPP_CLICK', referrerHost: typeof window !== 'undefined' ? window.location.hostname : '' }),
+                  }).catch(() => {});
+                }}
+                className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-4 h-4 text-[#25D366]" />
+                <span>{site.whatsappSettings.ctaLabel || 'Chat on WhatsApp'}</span>
+              </a>
+            )}
             <a
               href="#services"
               className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-sm rounded-xl transition-all"
@@ -399,6 +442,27 @@ export default function PublicWebsitePage() {
           </div>
         </div>
       </footer>
+      {/* Floating WhatsApp Action */}
+      {site.whatsappSettings && (
+        <aside aria-label="WhatsApp Contact" className="fixed bottom-6 right-6 z-50">
+          <a
+            href={buildWhatsAppClickToChat(site.whatsappSettings.phoneNumber, site.whatsappSettings.visitorMessage)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              fetch('/api/analytics/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventType: 'WHATSAPP_CLICK', referrerHost: typeof window !== 'undefined' ? window.location.hostname : '' }),
+              }).catch(() => {});
+            }}
+            className="px-4 py-3 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs rounded-full shadow-2xl flex items-center gap-2.5 transition-transform hover:scale-105 active:scale-95"
+          >
+            <MessageSquare className="w-5 h-5 fill-current" />
+            <span className="hidden sm:inline">{site.whatsappSettings.ctaLabel || 'Chat on WhatsApp'}</span>
+          </a>
+        </aside>
+      )}
     </div>
   );
 }

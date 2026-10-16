@@ -3,31 +3,34 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Workflow, Bot, Zap, Settings2, Plug, BarChart3, Megaphone, Wand2 } from 'lucide-react';
-
-const services = [
-  { icon: Workflow, title: 'AI Automation', description: 'End-to-end intelligent automation that understands your business context and executes accordingly.' },
-  { icon: Zap, title: 'Workflow Automation', description: 'Streamline repetitive tasks with smart workflows that adapt to your operational patterns.' },
-  { icon: Bot, title: 'AI Agents', description: 'Deploy autonomous AI agents that handle customer interactions, scheduling, and follow-ups.' },
-  { icon: Settings2, title: 'Business Process Automation', description: 'Transform manual processes into automated pipelines — from invoicing to customer onboarding.' },
-  { icon: Plug, title: 'AI Integrations', description: 'Connect with WhatsApp, Google Business, Razorpay, and your existing tools seamlessly.' },
-  { icon: BarChart3, title: 'Data & Analytics', description: 'Real-time revenue pulse, growth forecasts, and actionable business intelligence.' },
-  { icon: Megaphone, title: 'Marketing Automation', description: 'AI-crafted campaigns, WhatsApp broadcasts, and review management on autopilot.' },
-  { icon: Wand2, title: 'Custom AI Solutions', description: 'Tailored AI solutions designed specifically for your industry and business requirements.' },
-];
+import { useApp } from '@/context/AppContext';
 
 export const Services: React.FC = () => {
+  const { t } = useApp();
+
+  const services = [
+    { icon: Workflow, title: t('landing.serviceAiAutoTitle', 'AI Automation'), description: t('landing.serviceAiAutoDesc', 'End-to-end intelligent automation that understands your business context and executes accordingly.') },
+    { icon: Zap, title: t('landing.serviceWorkflowTitle', 'Workflow Automation'), description: t('landing.serviceWorkflowDesc', 'Streamline repetitive tasks with smart workflows that adapt to your operational patterns.') },
+    { icon: Bot, title: t('landing.serviceAgentsTitle', 'AI Agents'), description: t('landing.serviceAgentsDesc', 'Deploy autonomous AI agents that handle customer interactions, scheduling, and follow-ups.') },
+    { icon: Settings2, title: t('landing.serviceBpaTitle', 'Business Process Automation'), description: t('landing.serviceBpaDesc', 'Transform manual processes into automated pipelines — from invoicing to customer onboarding.') },
+    { icon: Plug, title: t('landing.serviceIntegrationsTitle', 'AI Integrations'), description: t('landing.serviceIntegrationsDesc', 'Connect with WhatsApp, Google Business, Razorpay, and your existing tools seamlessly.') },
+    { icon: BarChart3, title: t('landing.serviceAnalyticsTitle', 'Data & Analytics'), description: t('landing.serviceAnalyticsDesc', 'Real-time revenue pulse, growth forecasts, and actionable business intelligence.') },
+    { icon: Megaphone, title: t('landing.serviceMarketingTitle', 'Marketing Automation'), description: t('landing.serviceMarketingDesc', 'AI-crafted campaigns, WhatsApp broadcasts, and review management on autopilot.') },
+    { icon: Wand2, title: t('landing.serviceCustomTitle', 'Custom AI Solutions'), description: t('landing.serviceCustomDesc', 'Tailored AI solutions designed specifically for your industry and business requirements.') },
+  ];
+
   return (
     <section id="services" className="py-24 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
           <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
-            Services
+            {t('landing.servicesBadge', 'Services')}
           </span>
           <h2 className="text-major text-zinc-900 dark:text-white">
-            Everything your business needs to automate
+            {t('landing.servicesTitle', 'Everything your business needs to automate')}
           </h2>
           <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-            Comprehensive AI automation capabilities built into one intelligent platform.
+            {t('landing.servicesSubtitle', 'Comprehensive AI automation capabilities built into one intelligent platform.')}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -59,3 +62,4 @@ export const Services: React.FC = () => {
     </section>
   );
 };
+

@@ -40,7 +40,7 @@ export async function GET(
       return NextResponse.json({ error: 'Website not found or is currently private.' }, { status: 404 });
     }
 
-    // 2. Fetch business name and offerings for this organization
+    // 2. Fetch business name, offerings, and WhatsApp settings for this organization
     const org = await prisma.organization.findUnique({
       where: { id: site.organizationId },
       include: {
@@ -48,6 +48,7 @@ export async function GET(
           where: { isActive: true },
           take: 6,
         },
+        whatsappSettings: true,
       },
     });
 
@@ -55,6 +56,14 @@ export async function GET(
     const businessName = org?.name || 'Lumina Luxe Salon & Wellness';
 
     const cleanFont = (site.fontFamily || 'Inter').split(':::')[0] || 'Inter';
+
+    const whatsappSettings = org?.whatsappSettings && org.whatsappSettings.isEnabled
+      ? {
+          phoneNumber: org.whatsappSettings.phoneNumber,
+          ctaLabel: org.whatsappSettings.defaultCtaLabel || 'Chat on WhatsApp',
+          visitorMessage: org.whatsappSettings.visitorMessage || 'Hi! I visited your website and would like to know more about your services.',
+        }
+      : null;
 
     return NextResponse.json({
       site: {
@@ -67,6 +76,7 @@ export async function GET(
         isPublished: site.isPublished,
         blocks: parsedBlocks,
         services: org?.services && org.services.length > 0 ? org.services : mockServices,
+        whatsappSettings,
       },
     });
   } catch (error) {

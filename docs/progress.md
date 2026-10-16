@@ -26,9 +26,13 @@ This document serves as the single source of truth for **completed features**, *
 │ Smart Bookings          │ 🟢 Functional│ 98%                    │ Live Neon DB         │
 │ Marketing & Campaigns   │ 🟢 Functional│ 95%                    │ Neon DB + Groq LLM   │
 │ AI Website Builder      │ 🟢 Functional│ 95%                    │ Live Neon DB + SSR   │
-│ Saarthi AI Co-Pilot     │ 🟢 Functional│ 95%                    │ Groq API + Neon DB   │
+│ Saarthi AI Co-Pilot     │ 🟢 Functional│ 100%                   │ Groq API + Neon DB   │
 │ Settings, RBAC & Admin  │ 🟢 Functional│ 95%                    │ Live Neon DB         │
 │ Payments & Razorpay     │ 🟢 Functional│ 98%                    │ Live Neon DB + RZP   │
+│ WhatsApp & Smart Links  │ 🟢 Functional│ 100%                   │ Neon DB + Next.js SSR│
+│ Analytics & Telemetry   │ 🟢 Functional│ 100%                   │ Neon DB + Next.js API│
+│ Multilingual i18n       │ 🟢 Functional│ 100%                   │ React Context + Dict │
+│ Master AI System Prompt │ 🟢 Functional│ 100%                   │ @businessos/ai       │
 │ Backend Architecture    │ 🟢 Unified   │ 95%                    │ Next.js API + Prisma │
 └─────────────────────────┴──────────────┴────────────────────────┴──────────────────────┘
 ```
@@ -101,9 +105,73 @@ This document serves as the single source of truth for **completed features**, *
 - [x] **Third-Party Integrations Management**: `GET` and `POST` `/api/integrations` retrieving and toggling adapters for `RAZORPAY`, `GOOGLE_BUSINESS`, `WHATSAPP`, and `INSTAGRAM`.
 - [x] **Settings Page Live Data Binding**: `/dashboard/settings` Billing and Integrations tabs bound to live database state while strictly maintaining 100% of the original UI/UX layout.
 
-### I. Production Readiness & Observability
+### I. WhatsApp Click-to-Chat & AI Message Generation
+- [x] **Prisma Models & Neon Database**: Dedicated `WhatsAppSettings` model with tenant isolation (`organizationId @unique`), storing normalized E.164 phone numbers, default welcome messages, CTA labels, and visitor inquiries.
+- [x] **Phone Validation & Normalization**: `apps/web/src/lib/whatsapp.ts` enforcing 10-15 digit validation, auto-normalizing Indian 10-digit mobile numbers with `91` country code, and safely encoding prefilled click-to-chat `https://wa.me/<number>?text=<encoded_msg>` URLs.
+- [x] **Business Settings Management**: `GET` and `POST /api/whatsapp/settings` allowing each business to configure their WhatsApp phone number, toggle click-to-chat availability, customize welcome and visitor messages, and test via a live preview card.
+- [x] **Published Website Integration**: `/site/[slug]` dynamically renders a green WhatsApp CTA in the header, hero block, and a persistent bottom-right floating widget when enabled.
+- [x] **CRM & Lead Funnel Integration**: WhatsApp action buttons directly integrated into:
+  - **Lead Pipeline Kanban**: Click "Chat" on any lead card with a phone number to open a prefilled consultation draft.
+  - **Customer 360° Profile Drawer**: Instant "WhatsApp" button alongside Book Slot and Issue Invoice.
+  - **Customer Bulk Selection Banner**: "Send WhatsApp Offer" trigger across selected clients.
+- [x] **Appointments & Bookings Integration**: Direct "WhatsApp" button in the Bookings table to message customers regarding upcoming appointment schedules.
+- [x] **AI-Powered Message Drafter**: `POST /api/ai/whatsapp-draft` leveraging Groq LLM (`llama-3.3-70b-versatile`) with deterministic domain fallbacks to synthesize customized welcome messages, appointment confirmations, lead follow-ups, and promotional offers.
+- [x] **Interactive WhatsApp Draft Modal**: `apps/web/src/components/WhatsAppDraftModal.tsx` allowing one-click AI draft generation, real-time message editing, clipboard copying, and safe external dispatch to WhatsApp Web/Desktop without automatic sending.
+
+### J. Smart Business Links & Redirect Engine (`/go/[slug]`)
+- [x] **Prisma SmartLink Model**: Persistent `SmartLink` model with unique slugs, destination types (`WHATSAPP`, `BOOKING`, `WEBSITE`, `PHONE`, `CUSTOM_URL`), total click counters, active flags, and optional expiration dates.
+- [x] **Slug Security Guard**: `apps/web/src/lib/smart-links.ts` enforces 2-50 character length limits, alphanumeric and hyphen sanitization, and strictly blocks reserved platform routes (`api`, `go`, `dashboard`, `site`, `admin`, etc.).
+- [x] **Anti-Open Redirect & Protocol Validation**: Destination URLs validated server-side, strictly blocking dangerous schemes (`javascript:`, `data:`, `vbscript:`, `file:`, CRLF injection) while allowing trusted relative paths, web protocols (`http://`, `https://`), and normalized WhatsApp/tel links.
+- [x] **Smart Links CRUD APIs**: `GET /api/smart-links`, `POST /api/smart-links`, `PATCH /api/smart-links/[id]`, and `DELETE /api/smart-links/[id]` with multi-tenant isolation.
+- [x] **Public Smart Redirect Engine**: `GET /go/[slug]` dynamically resolves destination URLs, checks pause/expiration status, records click telemetry, and issues HTTP 307 Temporary Redirects.
+- [x] **Graceful Error Handling**: Custom branded 404 and 410 HTML pages rendered when a link is missing, paused by the business, or expired.
+- [x] **Marketing Workspace Integration**: `/dashboard/marketing` includes a dedicated "Smart Links & Analytics" tab with link creation modals, copy shortlink actions, status toggles, and live click tracking feeds.
+- [x] **Campaign Attribution**: Smart links can be associated with marketing broadcast campaigns, and one-click smart link insertion is available in the campaign creation modal.
+
+### K. Click and Redirect Analytics Telemetry
+- [x] **Prisma SmartLinkEvent Model**: Persistent event logging with tenant isolation, tracking event types (`SMART_LINK_VISIT`, `WHATSAPP_CLICK`, `BOOKING_CLICK`, `WEBSITE_CLICK`, `PHONE_CLICK`), referrer hosts, and timestamps.
+- [x] **Client-Side Event Ingestion**: `POST /api/analytics/track` securely ingests telemetry from website buttons, smart redirect routes, and custom campaigns with automated tenant resolution.
+- [x] **Aggregated Analytics API**: `GET /api/analytics` provides tenant-scoped metrics including total visits, WhatsApp click conversions, booking CTRs, active links, and clicks grouped by link and campaign.
+- [x] **Real-Time Stream Feed**: Live telemetry activity stream displayed on the marketing dashboard showing recent clicks and conversion events.
+
+### L. Production Readiness & Observability
 - [x] **Production Health Probe**: `GET /api/health` providing container liveness/readiness probes with Neon PostgreSQL query latency, AI provider status, and Razorpay configuration.
 - [x] **Strict UI/UX Preservation**: All original layouts, typography, navigation, and component trees maintained identically across all pages.
+- [x] **Local Workspace Integrity**: All modifications remain purely local in the working tree for user review; no git pushes executed.
+
+### M. Multilingual Web Platform (English, Hindi, Marathi)
+- [x] **Lightweight i18n Dictionary Engine**: `apps/web/src/lib/i18n/` with complete translations across English (`en`), Hindi (`hi`), and Marathi (`mr`) covering all public landing page sections and core dashboard views.
+- [x] **Dynamic Language Switcher**: Persistent language selector widget (`apps/web/src/components/LanguageSwitcher.tsx`) integrated in the top header navbar and landing page without altering any existing layout or theme aesthetics.
+- [x] **Landing Page Full Multilingual Coverage**: Complete Hindi and Marathi translations for Hero, Metrics, Services, How It Works, Final CTA, and Footer components.
+- [x] **Dashboard Multilingual Support**: CRM, Bookings, Marketing, Website Builder, and Settings pages adapted with localized titles, tabs, action buttons, and status labels.
+
+### N. Saarthi AI Multilingual Engine & Master System Prompt
+- [x] **Master System Prompt Specification**: `packages/ai/src/prompts/master-system-prompt.ts` implements the complete 13-section Master System Prompt specification for Saarthi AI.
+- [x] **Smart Script & Intent Language Detection**: `detectLanguageFromText()` automatically distinguishes between Devanagari Marathi (`mr`), Devanagari Hindi (`hi`), Romanized Marathi, Hinglish, and English fallback using distinct grammatical and syntactic markers.
+- [x] **Live Context & Directive Compilation**: `buildSaarthiSystemPrompt()` combines the Master Prompt with live CRM customer counts, scheduled appointments, catalog services, and preferred language directives (`mr`, `hi`, `hinglish`, `en`).
+- [x] **Multilingual SSE Streaming AI Endpoint**: `POST /api/ai` accepts user prompts, detects input language or preferred app language, and streams high-impact business advice via Server-Sent Events (SSE) in Marathi, Hindi, Hinglish, or English.
+- [x] **AI Assistant Multilingual Quick Action Chips**: `/dashboard/ai` dynamically renders localized prompt chips in Marathi (e.g. "मार्केटिंग कल्पना", "नवीन लीड्स"), Hindi ("मार्केटिंग आइडियाज", "नए लीड्स"), and English.
+- [x] **Multilingual WhatsApp AI Message Drafter**: `POST /api/ai/whatsapp-draft` and `WhatsAppDraftModal.tsx` support one-click language switching between English, Hindi, and Marathi for business messages across Welcome, Appointment, Service Info, Offer, and Follow-up categories.
+
+### O. Multilingual Typography for Saarthi AI (Noto Sans Devanagari)
+- [x] **Primary Font Selection**: `Noto Sans Devanagari` (Google Fonts) selected as the primary typeface for Hindi (हिन्दी) and Marathi (मराठी) text, configured across required weights: 400 (Regular body), 500 (Medium labels), 600 (Headings/subheadings), and 700 (Bold).
+- [x] **Resilient Platform Fallback Stack**: Integrated multi-platform fallback stack (`'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', 'Devanagari Sangam MN', 'Kohinoor Devanagari', system-ui, sans-serif`) ensuring smooth Devanagari glyph coverage on Windows, macOS, iOS, Android, and Linux.
+- [x] **Font-Loading Strategy**: Reused the preconnected `<link href="https://fonts.googleapis.com/css2?...">` with `display=swap` in `apps/web/src/app/layout.tsx` to prevent layout shifts and eliminate remote build-time fetch dependencies.
+- [x] **Mixed-Language Font Family**: Defined `--font-multilingual` (`'Plus Jakarta Sans', 'Noto Sans Devanagari', ...`) in `globals.css` and `tailwind.config.js`. Latin characters seamlessly render in `Plus Jakarta Sans` (preserving 100% of the English UI/UX typography), while Devanagari glyphs automatically fall through to `Noto Sans Devanagari`.
+- [x] **Matra Clearance & Vertical Spacing**: Adjusted line-height to `1.7` (with `letter-spacing: normal` to keep shirorekha continuous) for Devanagari text, completely preventing top matra (`े, ै, ो, ौ, ं, ँ, ॅ, र्`) and bottom matra (`ु, ू, ृ, ्, ्र`) collisions or container clipping.
+- [x] **AI Chatbot Message Component**: Created `apps/web/src/components/ai/ChatMessageContent.tsx` with dynamic Devanagari detection (`containsDevanagari`), structured markdown block parsing (headings, numbered/bullet lists, sublists, paragraphs), and inline tokenization (bold, italic, code) while maintaining exact message bubble sizing and aesthetics.
+- [x] **Targeted Chatbot Typography Integration**:
+  - `apps/web/src/app/dashboard/ai/page.tsx`: Upgraded assistant and user message bubbles with `ChatMessageContent`, updated composer textarea with `font-multilingual leading-[1.65]`, applied Devanagari typography to sidebar conversation titles and rename inputs, and updated quick action chips.
+  - `apps/web/src/components/WhatsAppDraftModal.tsx`: Applied `font-multilingual leading-[1.65]` to message draft review textarea.
+  - `apps/web/src/app/dashboard/marketing/page.tsx`: Applied `font-multilingual leading-[1.65]` to AI-generated social copy draft preview.
+  - `apps/web/src/components/Navigation.tsx`: Applied `font-multilingual` to HeaderNav AI prompt bar.
+- [x] **Testing & Verification**:
+  - **Hindi Input**: `"मेरे बिज़नेस के लिए मार्केटिंग पोस्ट बनाओ।"` -> Verified Devanagari detection, Noto Sans Devanagari font stack, line-height 1.7.
+  - **Marathi Input**: `"माझ्या व्यवसायासाठी मार्केटिंग पोस्ट तयार करा."` -> Verified Devanagari detection, Noto Sans Devanagari font stack, line-height 1.7.
+  - **Hinglish Input**: `"Mere business ke liye ek marketing post bana do."` -> Verified 100% Latin preservation in Plus Jakarta Sans, relaxed line-height.
+  - **Mixed Language**: `"माझे leads आणि bookings दाखवा."` -> Verified mixed Latin/Devanagari rendering, safe matra clearance.
+  - **Long Formatted Response**: Multiline Hindi/Marathi response with headings, bullet lists, numbered lists, and bold text parsed and rendered with zero clipping or layout shifts.
+  - **Typecheck & Build**: `tsc --noEmit` and `next build` passed with exit code 0 across all 17 routes.
 
 ---
 
@@ -152,7 +220,7 @@ flowchart TD
 
 ## 3. Automated Test Suites & Verification Results
 
-### Summary: 41 Tests Passing Across 17 Suites (0 Failures)
+### Summary: 84 Tests Passing Across 30 Suites (0 Failures)
 
 ```
 ▶ Phase 2 — CRM Persistence & Booking Conflict Detection Tests (11 tests)
@@ -174,6 +242,21 @@ flowchart TD
   ✔ Multi-Tenant Invoice & Subscription Isolation (2 tests)
   ✔ Third-Party Integration Adapters (2 tests)
 
+▶ Phase 5 — WhatsApp, Smart Links & Analytics Test Suite (22 tests)
+  ✔ WhatsApp Phone Validation & Click-to-Chat Generation (6 tests)
+  ✔ Smart Link Slug Validation & System Security (3 tests)
+  ✔ Destination Validation & Anti-Open Redirect Engine (4 tests)
+  ✔ Smart Redirect Engine Status & Expiration Handling (4 tests)
+  ✔ Multi-Tenant Analytics Aggregation & Telemetry (2 tests)
+  ✔ AI Message Drafter & Fallback Safety Engine (3 tests)
+
+▶ Phase 6 — Saarthi AI Multilingual Engine & Master System Prompt (21 tests)
+  ✔ Master System Prompt Specification Integrity (4 tests)
+  ✔ Multilingual Intent & Script Language Detection: Marathi, Hindi, Hinglish, English (6 tests)
+  ✔ Context-Aware Master System Prompt Compilation with Live Business Metrics (5 tests)
+  ✔ Multilingual WhatsApp AI Drafter Fallback Templates (3 tests)
+  ✔ Multilingual Smart Business Fallback Recommendations (3 tests)
+
 ▶ Multi-Tenant Isolation & Security Tests (6 tests)
   ✔ Cross-tenant customer isolation
   ✔ Cross-tenant booking isolation
@@ -183,9 +266,10 @@ flowchart TD
   ✔ Active session authorization
 ```
 
+- **Test Suite Results**: **84 tests passed across 30 suites (0 failures)**.
 - **Typecheck**: `npm run typecheck` (`tsc --noEmit`) passes with **0 errors** across all 8 workspaces.
-- **Production Build**: `npm run build` succeeds generating all 16 static pages and 21 dynamic API routes.
-- **Live Local Server**: Next.js development server active on `http://localhost:3000` with HTTP 200 OK across all dashboard views.
+- **Live Verification**: All live API routes tested with 100% success against local dev server and Neon PostgreSQL.
+- **Git Status**: 0 remote pushes (`git push` not executed; uncommitted changes preserved locally for user review).
 
 ---
 
@@ -193,17 +277,26 @@ flowchart TD
 
 | Area | Key Files |
 | :--- | :--- |
-| **Landing Page** | `apps/web/src/app/page.tsx`<br>`apps/web/src/components/landing/*` |
+| **Landing Page** | `apps/web/src/app/page.tsx`<br>`apps/web/src/components/landing/*`<br>`apps/web/src/components/LanguageSwitcher.tsx` |
+| **Multilingual i18n** | `apps/web/src/lib/i18n/index.ts`<br>`apps/web/src/lib/i18n/translations.ts`<br>`apps/web/src/context/AppContext.tsx`<br>`apps/web/src/components/LanguageSwitcher.tsx` |
+| **Master AI System Prompt & Engine** | `packages/ai/src/prompts/master-system-prompt.ts`<br>`packages/ai/src/index.ts`<br>`apps/api/src/tests/phase6-multilingual-saarthi-ai.spec.ts` |
 | **Auth & Session** | `apps/web/src/app/login/page.tsx`<br>`apps/web/src/lib/auth.ts`<br>`apps/web/src/lib/auth-options.ts`<br>`packages/auth/src/index.ts` |
 | **Onboarding** | `apps/web/src/app/onboarding/page.tsx`<br>`apps/web/src/app/api/onboarding/route.ts`<br>`apps/web/src/lib/data/business.ts` |
 | **Dashboard** | `apps/web/src/app/dashboard/page.tsx`<br>`apps/web/src/app/api/dashboard/route.ts`<br>`apps/web/src/lib/data/dashboard.ts`<br>`apps/web/src/app/api/tasks/route.ts` |
 | **AI Copilot** | `apps/web/src/app/dashboard/ai/page.tsx`<br>`apps/web/src/app/api/ai/route.ts`<br>`apps/web/src/app/api/conversations/route.ts`<br>`apps/web/src/app/api/conversations/[id]/route.ts`<br>`packages/ai/src/index.ts` |
-| **Customers CRM** | `apps/web/src/app/dashboard/customers/page.tsx`<br>`apps/web/src/app/api/customers/route.ts`<br>`apps/web/src/app/api/leads/route.ts`<br>`apps/web/src/app/api/customers/[id]/notes/route.ts` |
+| **Customers CRM** | `apps/web/src/app/dashboard/customers/page.tsx`<br>`apps/web/src/app/api/customers/route.ts`<br>`apps/web/src/app/api/leads/route.ts`<br>`apps/web/src/app/api/customers/[id]/notes/route.ts`<br>`apps/web/src/components/WhatsAppDraftModal.tsx` |
 | **Bookings** | `apps/web/src/app/dashboard/bookings/page.tsx`<br>`apps/web/src/app/api/bookings/route.ts`<br>`apps/web/src/app/api/services/route.ts`<br>`apps/web/src/app/api/staff/route.ts` |
 | **Marketing** | `apps/web/src/app/dashboard/marketing/page.tsx`<br>`apps/web/src/app/api/marketing/route.ts`<br>`apps/web/src/app/api/marketing/reviews/[id]/reply/route.ts` |
 | **Website Builder**| `apps/web/src/app/dashboard/website/page.tsx`<br>`apps/web/src/app/api/website/route.ts`<br>`apps/web/src/app/api/website/blocks/[id]/route.ts`<br>`apps/web/src/app/api/website/generate/route.ts`<br>`apps/web/src/app/site/[slug]/page.tsx`<br>`apps/web/src/app/api/site/[slug]/route.ts` |
+| **WhatsApp Configuration**| `packages/database/prisma/schema.prisma` (`WhatsAppSettings`)<br>`apps/web/src/lib/whatsapp.ts`<br>`apps/web/src/app/api/whatsapp/settings/route.ts`<br>`apps/web/src/app/dashboard/settings/page.tsx` |
+| **AI WhatsApp Message Drafter**| `apps/web/src/app/api/ai/whatsapp-draft/route.ts`<br>`apps/web/src/components/WhatsAppDraftModal.tsx` |
+| **Smart Business Links**| `packages/database/prisma/schema.prisma` (`SmartLink`)<br>`apps/web/src/lib/smart-links.ts`<br>`apps/web/src/app/api/smart-links/route.ts`<br>`apps/web/src/app/api/smart-links/[id]/route.ts`<br>`apps/web/src/app/dashboard/marketing/page.tsx` |
+| **Smart Redirect Engine**| `apps/web/src/app/go/[slug]/route.ts` (307 redirects, anti-open-redirect, 410/404 HTML fallback) |
+| **Analytics & Telemetry**| `packages/database/prisma/schema.prisma` (`SmartLinkEvent`)<br>`apps/web/src/app/api/analytics/track/route.ts`<br>`apps/web/src/app/api/analytics/route.ts` |
 | **Billing & Payments**| `apps/web/src/lib/razorpay.ts`<br>`apps/web/src/app/api/billing/route.ts`<br>`apps/web/src/app/api/billing/create-order/route.ts`<br>`apps/web/src/app/api/billing/verify/route.ts`<br>`apps/web/src/app/api/billing/webhook/route.ts`<br>`apps/web/src/app/api/integrations/route.ts` |
 | **Settings & RBAC**| `apps/web/src/app/dashboard/settings/page.tsx`<br>`apps/web/src/app/api/user/route.ts`<br>`apps/web/src/app/api/business/route.ts` |
 | **Health Probe**| `apps/web/src/app/api/health/route.ts` |
 | **Database & ORM** | `packages/database/prisma/schema.prisma`<br>`packages/database/src/index.ts`<br>`packages/database/src/seed-db.ts` |
 | **NestJS Backend** | `apps/api/src/main.ts`<br>`apps/api/src/app.module.ts`<br>`apps/api/src/*` |
+
+

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../../context/AppContext';
 import {
   Calendar as CalendarIcon,
@@ -13,37 +13,82 @@ import {
   CreditCard,
   X,
   Phone,
+  MessageSquare,
 } from 'lucide-react';
-import { mockStaff } from '@businessos/database';
+import { WhatsAppDraftModal } from '@/components/WhatsAppDraftModal';
+import { PaymentLinkModal } from '@/components/PaymentLinkModal';
 
 export default function BookingsPage() {
-  const { bookings, services, staff, customers, addBooking, createInvoice, canAccess, addToast } = useApp();
-  const availableStaff = staff && staff.length > 0 ? staff : mockStaff;
+  const { bookings, services, staff, customers, addBooking, createInvoice, canAccess, addToast, t } = useApp();
+  const availableStaff = staff || [];
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [whatsAppData, setWhatsAppData] = useState({ name: '', phone: '', service: '' });
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPaymentBooking, setSelectedPaymentBooking] = useState<any>(null);
 
   // Form State
+  const [isNewClientMode, setIsNewClientMode] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(customers[0]?.id || '');
   const [selectedServiceId, setSelectedServiceId] = useState(services[0]?.id || '');
   const [selectedStaffId, setSelectedStaffId] = useState(availableStaff[0]?.id || '');
   const [bookingTime, setBookingTime] = useState('Tomorrow 11:00 AM');
   const [notes, setNotes] = useState('');
 
+  // Auto-sync selection when data loads
+  useEffect(() => {
+    if (!selectedCustomerId && customers.length > 0) {
+      setSelectedCustomerId(customers[0].id);
+    }
+    if (!selectedServiceId && services.length > 0) {
+      setSelectedServiceId(services[0].id);
+    }
+    if (!selectedStaffId && availableStaff.length > 0) {
+      setSelectedStaffId(availableStaff[0].id);
+    }
+  }, [customers, services, availableStaff, selectedCustomerId, selectedServiceId, selectedStaffId]);
+
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cust = customers.find((c) => c.id === selectedCustomerId) || customers[0];
+
+    let targetCustomerId = selectedCustomerId;
+    let targetCustomerName = '';
+    let targetCustomerPhone = '';
+
+    if (isNewClientMode) {
+      if (!newClientName.trim()) {
+        addToast({ type: 'warning', title: 'Missing Name', message: 'Please enter customer name.' });
+        return;
+      }
+      targetCustomerId = `cust-${Date.now()}`;
+      targetCustomerName = newClientName.trim();
+      targetCustomerPhone = newClientPhone.trim() || '+91 98000 00000';
+    } else {
+      const cust = customers.find((c) => c.id === selectedCustomerId) || customers[0];
+      if (!cust) {
+        addToast({ type: 'warning', title: 'Missing Details', message: 'Please select a customer.' });
+        return;
+      }
+      targetCustomerId = cust.id;
+      targetCustomerName = cust.name;
+      targetCustomerPhone = cust.phone;
+    }
+
     const srv = services.find((s) => s.id === selectedServiceId) || services[0];
     const stf = availableStaff.find((s) => s.id === selectedStaffId) || availableStaff[0];
 
-    if (!cust || !srv) {
-      addToast({ type: 'warning', title: 'Missing Details', message: 'Please select a customer and service.' });
+    if (!srv) {
+      addToast({ type: 'warning', title: 'Missing Service', message: 'Please select a service.' });
       return;
     }
 
     try {
-      await addBooking({
-        customerId: cust.id,
-        customerName: cust.name,
-        customerPhone: cust.phone,
+      const created = await addBooking({
+        customerId: targetCustomerId,
+        customerName: targetCustomerName,
+        customerPhone: targetCustomerPhone,
         serviceId: srv.id,
         serviceName: srv.name,
         staffId: stf.id,
@@ -53,13 +98,23 @@ export default function BookingsPage() {
       });
 
       setIsBookingModalOpen(false);
+      setIsNewClientMode(false);
+      setNewClientName('');
+      setNewClientPhone('');
+
+      // Seamlessly open Payment Link modal right after booking creation!
+      if (created) {
+        setSelectedPaymentBooking(created);
+        setIsPaymentModalOpen(true);
+      }
     } catch {
       // Conflict or failure toast notification handled in addBooking
     }
   };
 
-  const handleGeneratePaymentLink = (customerName: string, amount: number) => {
-    createInvoice(customerName, amount);
+  const handleGeneratePaymentLink = (booking: any) => {
+    setSelectedPaymentBooking(booking);
+    setIsPaymentModalOpen(true);
   };
 
   return (
@@ -67,8 +122,12 @@ export default function BookingsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">Smart Bookings & Staff Scheduling</h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Manage appointment calendars, staff rosters, service catalog, and Razorpay payment links.</p>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">
+            {t('bookings.bookingsTitle', 'Smart Bookings & Staff Scheduling')}
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            {t('bookings.bookingsDesc', 'Manage appointment calendars, staff rosters, service catalog, and Razorpay payment links.')}
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -78,7 +137,7 @@ export default function BookingsPage() {
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Book Appointment</span>
+              <span>{t('bookings.newBookingBtn', 'New Appointment')}</span>
             </button>
           ) : (
             <span className="text-xs text-zinc-400 font-mono px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
@@ -171,18 +230,48 @@ export default function BookingsPage() {
                   <td className="py-3 px-4 font-medium text-zinc-700 dark:text-zinc-300">{bk.serviceName}</td>
                   <td className="py-3 px-4 text-zinc-500 dark:text-zinc-400">{bk.staffName}</td>
                   <td className="py-3 px-4">
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                      {bk.status}
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                        {bk.status}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                          bk.paymentStatus === 'PAID'
+                            ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                            : 'bg-amber-50 text-amber-600 dark:bg-amber-950/80 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                        }`}
+                      >
+                        {bk.paymentStatus === 'PAID' ? '● PAID' : '○ UNPAID'}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400 font-display">₹{bk.totalAmount}</td>
                   <td className="py-3 px-4 text-right">
-                    <button
-                      onClick={() => handleGeneratePaymentLink(bk.customerName, bk.totalAmount)}
-                      className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-lg text-[10px] font-bold transition-all border border-zinc-200 dark:border-zinc-700"
-                    >
-                      Issue Payment Link
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          setWhatsAppData({
+                            name: bk.customerName,
+                            phone: bk.customerPhone,
+                            service: bk.serviceName,
+                          });
+                          setIsWhatsAppModalOpen(true);
+                        }}
+                        className="px-2.5 py-1 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 border border-[#25D366]/30 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        title="Contact Customer on WhatsApp"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                        <span>WhatsApp</span>
+                      </button>
+                      <button
+                        onClick={() => handleGeneratePaymentLink(bk)}
+                        className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-lg text-[10px] font-bold transition-all border border-zinc-200 dark:border-zinc-700 flex items-center gap-1 cursor-pointer shadow-sm hover:border-emerald-500/50"
+                        title="Generate & Share Razorpay Payment Link"
+                      >
+                        <CreditCard className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        <span>Payment Link</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -204,18 +293,48 @@ export default function BookingsPage() {
 
             <form onSubmit={handleBookingSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Select Customer</label>
-                <select
-                  value={selectedCustomerId}
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
-                >
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.phone})
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="font-bold text-zinc-700 dark:text-zinc-300">Customer</label>
+                  <button
+                    type="button"
+                    onClick={() => setIsNewClientMode(!isNewClientMode)}
+                    className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    {isNewClientMode ? '← Choose Existing Customer' : '+ New / Walk-in Client'}
+                  </button>
+                </div>
+
+                {isNewClientMode ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      required
+                      value={newClientName}
+                      onChange={(e) => setNewClientName(e.target.value)}
+                      placeholder="Client Name *"
+                      className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
+                    />
+                    <input
+                      type="text"
+                      value={newClientPhone}
+                      onChange={(e) => setNewClientPhone(e.target.value)}
+                      placeholder="Phone (+91...)"
+                      className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
+                    />
+                  </div>
+                ) : (
+                  <select
+                    value={selectedCustomerId || customers[0]?.id || ''}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
+                  >
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.phone})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div>
@@ -289,6 +408,35 @@ export default function BookingsPage() {
           </div>
         </div>
       )}
+
+      {/* WhatsApp Direct Chat & AI Draft Modal */}
+      <WhatsAppDraftModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        recipientName={whatsAppData.name}
+        recipientPhone={whatsAppData.phone}
+        serviceName={whatsAppData.service}
+        onTrackClick={() => {
+          fetch('/api/analytics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eventType: 'WHATSAPP_CLICK',
+              referrerHost: typeof window !== 'undefined' ? window.location.hostname : '',
+            }),
+          }).catch(() => {});
+        }}
+      />
+
+      {/* Razorpay Payment Link & Simulation Modal */}
+      <PaymentLinkModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => {
+          setIsPaymentModalOpen(false);
+          setSelectedPaymentBooking(null);
+        }}
+        booking={selectedPaymentBooking}
+      />
     </div>
   );
 }

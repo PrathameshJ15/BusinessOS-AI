@@ -344,3 +344,92 @@ export interface Invoice {
   razorpayPaymentId?: string;
   createdAt: string;
 }
+
+// ─── WhatsApp & Smart Business Links ──────────────────────────────────────────
+
+export interface WhatsAppSettings {
+  id: string;
+  organizationId: string;
+  phoneNumber: string;
+  isEnabled: boolean;
+  defaultWelcomeMessage: string;
+  defaultCtaLabel: string;
+  visitorMessage: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type SmartLinkDestinationType = 'WHATSAPP' | 'BOOKING' | 'WEBSITE' | 'PHONE' | 'CUSTOM_URL';
+
+export interface SmartLink {
+  id: string;
+  organizationId: string;
+  campaignId?: string | null;
+  slug: string;
+  name: string;
+  destinationType: SmartLinkDestinationType;
+  destinationValue: string;
+  isActive: boolean;
+  expiresAt?: string | null;
+  totalClicks: number;
+  createdAt?: string;
+  updatedAt?: string;
+  campaign?: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export type SmartLinkEventType =
+  | 'SMART_LINK_VISIT'
+  | 'WHATSAPP_CLICK'
+  | 'BOOKING_CLICK'
+  | 'WEBSITE_CLICK'
+  | 'PHONE_CLICK';
+
+export interface SmartLinkEvent {
+  id: string;
+  organizationId: string;
+  smartLinkId?: string | null;
+  campaignId?: string | null;
+  eventType: SmartLinkEventType;
+  referrerHost?: string | null;
+  createdAt: string;
+}
+
+export interface AnalyticsSummary {
+  totalLinkVisits: number;
+  totalWhatsAppClicks: number;
+  totalBookingClicks: number;
+  totalWebsiteClicks: number;
+  totalPhoneClicks: number;
+  totalEvents: number;
+  clicksByLink: {
+    linkId: string;
+    slug: string;
+    name: string;
+    clicks: number;
+    destinationType: SmartLinkDestinationType;
+  }[];
+  clicksByCampaign: {
+    campaignId: string;
+    campaignName: string;
+    clicks: number;
+  }[];
+  recentEvents: SmartLinkEvent[];
+}
+
+export interface WhatsAppDraftRequest {
+  messageType: 'WELCOME' | 'LEAD_FOLLOWUP' | 'APPOINTMENT_ENQUIRY' | 'PRODUCT_SERVICE' | 'CAMPAIGN_OFFER';
+  customerName?: string;
+  businessName?: string;
+  serviceName?: string;
+  offerDetails?: string;
+  notes?: string;
+}
+
+export interface WhatsAppDraftResponse {
+  draft: string;
+  encodedUrl: string;
+  messageType: string;
+}

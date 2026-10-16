@@ -19,6 +19,9 @@ import {
   Task,
   User,
   Website,
+  WhatsAppSettings,
+  SmartLink,
+  SmartLinkEvent,
 } from '@businessos/shared';
 
 export const mockUsers: User[] = [
@@ -709,3 +712,94 @@ export const mockSubscription: Subscription = {
   currentPeriodEnd: '2026-08-31T23:59:59Z',
   razorpaySubscriptionId: 'sub_rzp_mock_8811',
 };
+
+export const mockWhatsAppSettings: WhatsAppSettings = {
+  id: 'wa-set-1',
+  organizationId: mockOrganization.id,
+  phoneNumber: '919876543210',
+  isEnabled: true,
+  defaultWelcomeMessage: 'Hello! I am contacting you from Lumina Luxe Salon & Wellness.',
+  defaultCtaLabel: 'Chat on WhatsApp',
+  visitorMessage: 'Hi! I visited your website and would like to know more about your services.',
+  createdAt: '2026-08-01T00:00:00Z',
+  updatedAt: '2026-08-15T00:00:00Z',
+};
+
+export const mockSmartLinks: SmartLink[] = [
+  {
+    id: 'link-1',
+    organizationId: mockOrganization.id,
+    campaignId: 'camp-1',
+    slug: 'glow20',
+    name: 'Weekend Glow 20% WhatsApp Offer',
+    destinationType: 'WHATSAPP',
+    destinationValue: 'https://wa.me/919876543210?text=Hi!%20I%20would%20like%20to%20claim%20the%20Weekend%20Radiance%2020%25%20discount.',
+    isActive: true,
+    expiresAt: null,
+    totalClicks: 48,
+    createdAt: '2026-08-05T09:00:00Z',
+    updatedAt: '2026-08-15T12:00:00Z',
+    campaign: {
+      id: 'camp-1',
+      name: 'Weekend Radiance Flash Sale',
+    },
+  },
+  {
+    id: 'link-2',
+    organizationId: mockOrganization.id,
+    campaignId: null,
+    slug: 'book',
+    name: 'Direct Appointment Booking Link',
+    destinationType: 'BOOKING',
+    destinationValue: '/dashboard/bookings',
+    isActive: true,
+    expiresAt: null,
+    totalClicks: 112,
+    createdAt: '2026-08-01T00:00:00Z',
+    updatedAt: '2026-08-15T12:00:00Z',
+  },
+  {
+    id: 'link-3',
+    organizationId: mockOrganization.id,
+    campaignId: null,
+    slug: 'salon',
+    name: 'Official Storefront Website',
+    destinationType: 'WEBSITE',
+    destinationValue: '/site/lumina-luxe',
+    isActive: true,
+    expiresAt: null,
+    totalClicks: 230,
+    createdAt: '2026-08-01T00:00:00Z',
+    updatedAt: '2026-08-15T12:00:00Z',
+  },
+];
+
+export const mockSmartLinkEvents: SmartLinkEvent[] = [
+  {
+    id: 'evt-1',
+    organizationId: mockOrganization.id,
+    smartLinkId: 'link-1',
+    campaignId: 'camp-1',
+    eventType: 'SMART_LINK_VISIT',
+    referrerHost: 'instagram.com',
+    createdAt: '2026-08-14T10:00:00Z',
+  },
+  {
+    id: 'evt-2',
+    organizationId: mockOrganization.id,
+    smartLinkId: 'link-1',
+    campaignId: 'camp-1',
+    eventType: 'WHATSAPP_CLICK',
+    referrerHost: 'instagram.com',
+    createdAt: '2026-08-14T10:05:00Z',
+  },
+  {
+    id: 'evt-3',
+    organizationId: mockOrganization.id,
+    smartLinkId: 'link-2',
+    campaignId: null,
+    eventType: 'BOOKING_CLICK',
+    referrerHost: 'google.com',
+    createdAt: '2026-08-15T11:00:00Z',
+  },
+];

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { Logo } from './Logo';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { Role } from '@businessos/shared';
 import {
   LayoutDashboard,
@@ -24,16 +25,16 @@ import {
 
 export const SidebarNav: React.FC = () => {
   const pathname = usePathname();
-  const { session, setRole, switchAccount } = useApp();
+  const { session, setRole, switchAccount, t } = useApp();
 
   const navItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Customers', href: '/dashboard/customers', icon: Users },
-    { name: 'Website', href: '/dashboard/website', icon: Globe },
-    { name: 'Marketing', href: '/dashboard/marketing', icon: Megaphone },
-    { name: 'Bookings', href: '/dashboard/bookings', icon: Calendar },
-    { name: 'AI Workspace', href: '/dashboard/ai', icon: Sparkles, badge: 'AI Native' },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    { name: t('nav.dashboard', 'Dashboard'), href: '/dashboard', icon: LayoutDashboard },
+    { name: t('nav.customers', 'Customers'), href: '/dashboard/customers', icon: Users },
+    { name: t('nav.website', 'Website'), href: '/dashboard/website', icon: Globe },
+    { name: t('nav.marketing', 'Marketing'), href: '/dashboard/marketing', icon: Megaphone },
+    { name: t('nav.bookings', 'Bookings'), href: '/dashboard/bookings', icon: Calendar },
+    { name: t('nav.aiWorkspace', 'AI Workspace'), href: '/dashboard/ai', icon: Sparkles, badge: t('common.aiNative', 'AI Native') },
+    { name: t('nav.settings', 'Settings'), href: '/dashboard/settings', icon: Settings },
   ];
 
   const getInitials = (name: string) => {
@@ -62,7 +63,7 @@ export const SidebarNav: React.FC = () => {
         <div className="flex items-center justify-between text-xs text-zinc-400 font-medium px-1">
           <span className="flex items-center gap-1">
             <UserCheck className="w-3 h-3 text-emerald-400" />
-            Account Context
+            {t('nav.accountContext', 'Account Context')}
           </span>
         </div>
         <select
@@ -77,7 +78,7 @@ export const SidebarNav: React.FC = () => {
         </select>
 
         <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1 px-1">
-          <span>Active Role</span>
+          <span>{t('nav.activeRole', 'Active Role')}</span>
           <span className="font-mono text-[10px] text-emerald-400 uppercase font-bold">{session.role}</span>
         </div>
         <div className="grid grid-cols-3 gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
@@ -91,7 +92,7 @@ export const SidebarNav: React.FC = () => {
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
               }`}
             >
-              {r === 'OWNER' ? 'Owner' : r === 'MANAGER' ? 'Mgr' : 'Staff'}
+              {r === 'OWNER' ? t('nav.owner', 'Owner') : r === 'MANAGER' ? t('nav.manager', 'Mgr') : t('nav.staff', 'Staff')}
             </button>
           ))}
         </div>
@@ -100,7 +101,7 @@ export const SidebarNav: React.FC = () => {
       {/* Main Navigation Links */}
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
         <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
-          Platform Navigation
+          {t('nav.platformNav', 'Platform Navigation')}
         </div>
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -154,7 +155,7 @@ export const SidebarNav: React.FC = () => {
 };
 
 export const HeaderNav: React.FC = () => {
-  const { session, theme, toggleTheme } = useApp();
+  const { session, theme, toggleTheme, t } = useApp();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifs, setShowNotifs] = useState(false);
 
@@ -214,16 +215,18 @@ export const HeaderNav: React.FC = () => {
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
-            placeholder="Ask Saarthi anything... (e.g. 'How is my business performing?')"
-            className="w-full bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 pl-10 pr-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all cursor-pointer font-sans font-medium"
+            placeholder={t('nav.askSaarthi', "Ask Saarthi anything... (e.g. 'How is my business performing?')")}
+            className="w-full bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 pl-10 pr-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all cursor-pointer font-multilingual font-medium"
             readOnly
             onClick={() => (window.location.href = '/dashboard/ai')}
           />
         </div>
       </div>
 
-      {/* Right Action Icons, Dark Mode Switcher & Organization */}
+      {/* Right Action Icons, Language Switcher, Dark Mode Switcher & Organization */}
       <div className="flex items-center gap-3 relative">
+        <LanguageSwitcher variant="header" />
+
         <button
           onClick={toggleTheme}
           title="Toggle Dark Mode"
@@ -257,19 +260,19 @@ export const HeaderNav: React.FC = () => {
           {showNotifs && (
             <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-4 z-50 text-xs space-y-3 font-sans">
               <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-                <span className="font-bold text-zinc-900 dark:text-white">Notifications ({unreadCount})</span>
+                <span className="font-bold text-zinc-900 dark:text-white">{t('nav.notifications', 'Notifications')} ({unreadCount})</span>
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllRead}
                     className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
                   >
-                    Mark all read
+                    {t('nav.markAllRead', 'Mark all read')}
                   </button>
                 )}
               </div>
 
               {notifications.length === 0 ? (
-                <p className="text-zinc-400 text-center py-4 text-xs">No notifications yet.</p>
+                <p className="text-zinc-400 text-center py-4 text-xs">{t('nav.noNotifications', 'No notifications yet.')}</p>
               ) : (
                 <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
                   {notifications.slice(0, 10).map((n) => (

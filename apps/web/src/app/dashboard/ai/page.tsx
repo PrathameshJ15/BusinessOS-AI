@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../../../context/AppContext';
+import { ChatMessageContent, containsDevanagari } from '@/components/ai/ChatMessageContent';
 import {
   Sparkles,
   Send,
@@ -64,10 +65,34 @@ const QUICK_ACTIONS = [
   { label: 'Competitor Analysis', icon: Target, prompt: 'Help me create a competitor analysis framework to identify market opportunities and threats.' },
 ];
 
+function getQuickActions(lang: string) {
+  if (lang === 'mr') {
+    return [
+      { label: 'मार्केटिंग कल्पना', icon: Lightbulb, prompt: 'माझ्या व्यवसायासाठी १० नवनवीन मार्केटिंग कल्पना द्या ज्या मी कमी खर्चात सुरू करू शकेन.' },
+      { label: 'सोशल मीडिया पोस्ट', icon: Globe, prompt: 'माझ्या बिझनेससाठी Instagram वर नवीन ग्राहकांना आकर्षित करणारी पोस्ट मराठीत तयार करा.' },
+      { label: 'नवीन लीड्स', icon: Users, prompt: 'माझे नवीन लीड्स दाखव आणि त्यांच्यासाठी WhatsApp फॉलो-अप संदेश तयार कर.' },
+      { label: 'विक्री वाढवा', icon: TrendingUp, prompt: 'पुढील ३ महिन्यांत २०% विक्री वाढवण्यासाठी व्यावहारिक योजना सुचवा.' },
+      { label: 'WhatsApp मेसेज', icon: Mail, prompt: 'माझ्या दुकानासाठी नवीन ग्राहकांसाठी स्वागत WhatsApp मेसेज तयार कर.' },
+      { label: 'वेबसाइट माहिती', icon: FileText, prompt: 'माझ्या व्यवसायाच्या वेबसाइटसाठी आकर्षक मुख्य मजकूर तयार करा.' },
+    ];
+  }
+  if (lang === 'hi') {
+    return [
+      { label: 'मार्केटिंग आइडियाज', icon: Lightbulb, prompt: 'मेरे बिज़नेस के लिए १० कम बजट वाली क्रिएटिव मार्केटिंग रणनीतियाँ बताएं।' },
+      { label: 'सोशल पोस्ट', icon: Globe, prompt: 'मेरे बिज़नेस के लिए एक आकर्षक सोशल मीडिया पोस्ट हिंदी में बनाएं।' },
+      { label: 'नए लीड्स', icon: Users, prompt: 'मेरे नए लीड्स दिखाओ और उनके लिए फॉलो-अप संदेश तैयार करो।' },
+      { label: 'सेल्स स्ट्रेटेजी', icon: TrendingUp, prompt: 'अगले तिमाही में रेवेन्यू २०% बढ़ाने के लिए प्रैक्टिकल सेल्स रणनीति बनाएं।' },
+      { label: 'WhatsApp मेसेज', icon: Mail, prompt: 'नए ग्राहकों के लिए प्रोफेशनल वेलकम WhatsApp मेसेज तैयार करें।' },
+      { label: 'वेबसाइट कॉपी', icon: FileText, prompt: 'मेरे बिज़नेस की वेबसाइट के लिए आकर्षक होमपेज कंटेंट लिखें।' },
+    ];
+  }
+  return QUICK_ACTIONS;
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function AIWorkspacePage() {
-  const { session, addToast } = useApp();
+  const { session, addToast, t, language } = useApp();
 
   // Conversation state
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -169,6 +194,7 @@ export default function AIWorkspacePage() {
         body: JSON.stringify({
           message: query,
           conversationId: activeConversationId,
+          preferredLanguage: language,
         }),
       });
 
@@ -427,7 +453,7 @@ export default function AIWorkspacePage() {
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSaveRename()}
-                    className="flex-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-emerald-500"
+                    className="flex-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-emerald-500 font-multilingual"
                     autoFocus
                   />
                   <button onClick={handleSaveRename} className="p-1 text-emerald-600 hover:text-emerald-500">
@@ -443,7 +469,7 @@ export default function AIWorkspacePage() {
                     className="flex-1 min-w-0"
                     onClick={() => handleSelectConversation(conv.id)}
                   >
-                    <p className="truncate">{conv.title}</p>
+                    <p className={`truncate font-multilingual ${containsDevanagari(conv.title) ? 'leading-normal' : ''}`}>{conv.title}</p>
                     <span className="text-[9px] font-mono text-zinc-400 mt-0.5 block">
                       {formatTime(conv.updatedAt)}
                     </span>
@@ -522,23 +548,23 @@ export default function AIWorkspacePage() {
               <h1 className="text-2xl md:text-3xl font-bold font-display tracking-tight text-zinc-900 dark:text-white text-center mb-2">
                 Saarthi AI
               </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mb-10 max-w-md">
-                Your intelligent business copilot. Ask about marketing, sales, customers, strategy — or pick a quick action below.
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mb-10 max-w-md font-multilingual leading-relaxed">
+                {t('ai.aiDesc', 'Your intelligent business copilot. Ask about marketing, sales, customers, strategy — or pick a quick action below.')}
               </p>
 
               {/* Quick Actions */}
               <div className="w-full max-w-3xl">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                  {QUICK_ACTIONS.map((action) => {
+                  {getQuickActions(language).map((action) => {
                     const Icon = action.icon;
                     return (
                       <button
                         key={action.label}
                         onClick={() => handleSendMessage(action.prompt)}
-                        className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:border-emerald-500/50 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all group"
+                        className="flex flex-col items-center gap-2 p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:border-emerald-500/50 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all group font-multilingual"
                       >
                         <Icon className="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
-                        <span className="text-center leading-tight">{action.label}</span>
+                        <span className="text-center leading-snug">{action.label}</span>
                       </button>
                     );
                   })}
@@ -566,7 +592,7 @@ export default function AIWorkspacePage() {
                         : 'bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap leading-relaxed break-words">{msg.content}</div>
+                    <ChatMessageContent content={msg.content} role={msg.role} />
 
                     {/* Assistant action buttons */}
                     {msg.role === 'assistant' && msg.content && (
@@ -651,9 +677,9 @@ export default function AIWorkspacePage() {
                 e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Saarthi anything about your business..."
+              placeholder={t('ai.promptPlaceholder', 'Ask a business question, analyze customer data, or generate a campaign...')}
               rows={1}
-              className="flex-1 text-xs bg-transparent text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none font-sans font-medium resize-none max-h-40 leading-relaxed"
+              className="flex-1 text-xs bg-transparent text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none font-multilingual font-medium resize-none max-h-40 leading-[1.65]"
               disabled={isLoading || isStreaming}
             />
             <button
@@ -665,7 +691,7 @@ export default function AIWorkspacePage() {
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <>
-                  <span>Send</span>
+                  <span>{t('ai.send', 'Send')}</span>
                   <Send className="w-3.5 h-3.5" />
                 </>
               )}

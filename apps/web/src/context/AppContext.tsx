@@ -6,8 +6,9 @@ import {
   Booking, Campaign, Conversation, Customer, CustomerActivity, Invoice, Lead, Note, Permission, Review, Role, Service, Staff, Website,
 } from '@businessos/shared';
 import {
-  mockBusinessProfile, mockCustomerActivities, mockIntegrations, mockInvoices, mockLeads, mockNotes, mockOrganization, mockServices, mockStaff, mockSubscription, mockWebsite,
+  mockBusinessProfile, mockCustomerActivities, mockIntegrations, mockInvoices, mockLeads, mockNotes, mockOrganization, mockServices, mockStaff, mockSubscription, mockWebsite, mockCustomers, mockBookings,
 } from '@businessos/database';
+import { SupportedLanguage, TranslationDictionary, dictionaries, getTranslation } from '../lib/i18n';
 
 interface Toast {
   id: string;
@@ -18,6 +19,10 @@ interface Toast {
 
 interface AppContextType {
   session: AuthSession;
+  language: SupportedLanguage;
+  setLanguage: (lang: SupportedLanguage) => void;
+  t: (key: string, fallback?: string) => string;
+  dict: TranslationDictionary;
   setRole: (role: Role) => void;
   switchAccount: (email: string) => Promise<void>;
   canAccess: (permission: Permission) => boolean;
@@ -50,7 +55,16 @@ interface AppContextType {
   replyToReview: (reviewId: string, responseText: string) => Promise<void>;
   createInvoice: (customerName: string, amount: number) => Invoice;
   createBillingOrder: (plan: string, amount: number) => Promise<any>;
-  verifyPayment: (payload: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; plan?: string; invoiceId?: string }) => Promise<boolean>;
+  verifyPayment: (payload: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    plan?: string;
+    invoiceId?: string;
+    bookingId?: string;
+    isSubscriptionPayment?: boolean;
+  }) => Promise<boolean>;
+  updateBookingPaymentStatus: (bookingId: string, status: 'PAID' | 'UNPAID') => void;
   toggleIntegration: (provider: string, status?: string) => Promise<void>;
   addNote: (customerId: string, content: string) => Promise<Note>;
   updateLeadStage: (leadId: string, newStage: string) => Promise<void>;
@@ -75,6 +89,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [hasMounted, setHasMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [language, setLanguageState] = useState<SupportedLanguage>('en');
+
+  // Load language from localStorage / cookie on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('saarthi-language') as SupportedLanguage;
+      if (stored && (stored === 'en' || stored === 'hi' || stored === 'mr')) {
+        setLanguageState(stored);
+        if (typeof document !== 'undefined') {
+          document.documentElement.lang = stored;
+        }
+      }
+    } catch {}
+  }, []);
+
+  const setLanguage = useCallback((lang: SupportedLanguage) => {
+    setLanguageState(lang);
+    try {
+      localStorage.setItem('saarthi-language', lang);
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = lang;
+        document.cookie = `saarthi-language=${lang}; path=/; max-age=31536000`;
+      }
+    } catch {}
+  }, []);
+
+  const t = useCallback((key: string, fallback?: string) => {
+    return getTranslation(language, key, fallback);
+  }, [language]);
+
+  const dict = dictionaries[language] || dictionaries.en;
 
   const [session, setSession] = useState<AuthSession>({
     userId: 'usr-prathamesh',
@@ -85,9 +130,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     role: 'OWNER',
   });
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [services, setServices] = useState<Service[]>(mockServices);
@@ -755,6 +800,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     razorpay_signature: string;
     plan?: string;
     invoiceId?: string;
+    bookingId?: string;
+    isSubscriptionPayment?: boolean;
   }): Promise<boolean> => {
     try {
       const res = await fetch('/api/billing/verify', {
@@ -767,8 +814,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       const data = await res.json();
       if (res.ok && data.verified) {
-        addToast({ type: 'success', title: 'Payment Successful', message: 'Subscription upgraded & invoice marked PAID.' });
-        if (data.subscription) setSubscription(data.subscription);
+        addToast({
+          type: 'success',
+          title: 'Payment Verified',
+          message: payload.isSubscriptionPayment
+            ? 'Subscription upgraded & invoice marked PAID.'
+            : 'Payment received & invoice marked PAID.',
+        });
+        if (data.subscription && payload.isSubscriptionPayment) setSubscription(data.subscription);
         setInvoices((prev) =>
           prev.map((inv) =>
             inv.razorpayOrderId === payload.razorpay_order_id || inv.id === payload.invoiceId
@@ -776,6 +829,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               : inv
           )
         );
+        if (payload.bookingId) {
+          setBookings((prev) =>
+            prev.map((bk) =>
+              bk.id === payload.bookingId
+                ? { ...bk, paymentStatus: 'PAID' }
+                : bk
+            )
+          );
+        }
         return true;
       } else {
         addToast({ type: 'error', title: 'Payment Verification Failed', message: data.error || 'Signature check failed' });
@@ -785,6 +847,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addToast({ type: 'error', title: 'Verification Error', message: err.message || 'Could not verify payment' });
       return false;
     }
+  };
+
+  const updateBookingPaymentStatus = (bookingId: string, status: 'PAID' | 'UNPAID') => {
+    setBookings((prev) =>
+      prev.map((bk) => (bk.id === bookingId ? { ...bk, paymentStatus: status } : bk))
+    );
   };
 
   const toggleIntegration = async (provider: string, status?: string): Promise<void> => {
@@ -890,6 +958,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         session,
+        language,
+        setLanguage,
+        t,
+        dict,
         setRole,
         switchAccount,
         canAccess,
@@ -923,6 +995,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createInvoice,
         createBillingOrder,
         verifyPayment,
+        updateBookingPaymentStatus,
         toggleIntegration,
         addNote,
         updateLeadStage,
@@ -959,4 +1032,9 @@ export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) throw new Error('useApp must be used within an AppProvider');
   return context;
+};
+
+export const useTranslation = () => {
+  const { language, setLanguage, t, dict } = useApp();
+  return { language, setLanguage, t, dict };
 };

@@ -5,6 +5,8 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Logo } from '@/components/Logo';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useApp } from '@/context/AppContext';
 import {
   Sparkles,
   ArrowRight,
@@ -46,6 +48,7 @@ function LoginForm() {
   const errorParam = searchParams.get('error');
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
+  const { t } = useApp();
   const { data: session, status } = useSession();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [activeDemoLoading, setActiveDemoLoading] = useState<string | null>(null);
@@ -84,6 +87,11 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Top right language switcher */}
+      <div className="absolute top-6 right-6 z-20">
+        <LanguageSwitcher variant="landing" />
+      </div>
+
       {/* Background glow effects */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -93,10 +101,10 @@ function LoginForm() {
         <div className="flex flex-col items-center mb-8">
           <Logo href="/" size={44} showText textVariant="landing" priority />
           <h2 className="mt-6 text-2xl font-bold tracking-tight text-white text-center">
-            Sign in to BusinessOS AI
+            {t('auth.signInTitle', 'Sign in to BusinessOS AI')}
           </h2>
           <p className="mt-2 text-xs text-zinc-400 text-center max-w-sm">
-            Access your AI-powered operating system, customer CRM, campaigns, and intelligent automations.
+            {t('auth.signInSubtitle', 'Access your AI-powered operating system, customer CRM, campaigns, and intelligent automations.')}
           </p>
         </div>
 
@@ -132,7 +140,7 @@ function LoginForm() {
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-zinc-400">Signed in as</span>
+                  <span className="text-xs font-semibold text-zinc-400">{t('auth.signedInAs', 'Signed in as')}</span>
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     <CheckCircle2 className="w-2.5 h-2.5" /> Google Active
                   </span>
@@ -147,14 +155,14 @@ function LoginForm() {
                 href="/dashboard"
                 className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/50"
               >
-                <span>Continue to Dashboard</span>
+                <span>{t('auth.continueToDashboard', 'Continue to Dashboard')}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/login' })}
                 className="w-full py-2.5 px-4 bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-xl transition-all border border-zinc-700/60"
               >
-                Sign Out
+                {t('auth.signOut', 'Sign Out')}
               </button>
             </div>
           </div>
@@ -172,12 +180,12 @@ function LoginForm() {
                 {isGoogleLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-zinc-700" />
-                    <span>Connecting to Google...</span>
+                    <span>{t('auth.connectingGoogle', 'Connecting to Google...')}</span>
                   </>
                 ) : (
                   <>
                     <GoogleIcon className="w-4 h-4" />
-                    <span>Continue with Google</span>
+                    <span>{t('auth.continueWithGoogle', 'Continue with Google')}</span>
                   </>
                 )}
               </button>
@@ -197,7 +205,7 @@ function LoginForm() {
               </div>
               <div className="relative flex justify-center text-xs">
                 <span className="bg-zinc-900 px-3 text-zinc-500 font-medium uppercase tracking-wider text-[10px]">
-                  Or Instant Demo Access
+                  {t('auth.instantDemoAccess', 'Or Instant Demo Access')}
                 </span>
               </div>
             </div>
@@ -206,7 +214,7 @@ function LoginForm() {
             <div className="space-y-2">
               <p className="text-[11px] text-zinc-400 font-medium flex items-center gap-1.5 mb-2">
                 <UserCheck className="w-3.5 h-3.5 text-zinc-500" />
-                <span>Pre-configured workspace accounts:</span>
+                <span>{t('auth.preConfiguredAccounts', 'Pre-configured workspace accounts:')}</span>
               </p>
 
               <button
@@ -272,7 +280,7 @@ function LoginForm() {
             href="/"
             className="text-xs font-medium text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5"
           >
-            ← Return to Saarthi AI Homepage
+            {t('auth.returnHome', '← Return to Saarthi AI Homepage')}
           </Link>
         </div>
       </div>

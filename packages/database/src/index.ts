@@ -16,6 +16,9 @@ import {
   mockTasks,
   mockUsers,
   mockWebsite,
+  mockWhatsAppSettings,
+  mockSmartLinks,
+  mockSmartLinkEvents,
 } from './seed';
 
 import { PrismaClient } from '@prisma/client';
@@ -40,8 +43,52 @@ export class BusinessOSRepository {
   private notifications = [...mockNotifications];
   private integrations = [...mockIntegrations];
   private subscription = { ...mockSubscription };
+  private whatsappSettings = { ...mockWhatsAppSettings };
+  private smartLinks = [...mockSmartLinks];
+  private smartLinkEvents = [...mockSmartLinkEvents];
 
   // Tenant Isolated Query Helpers
+  getWhatsAppSettings(orgId: string) {
+    if (this.whatsappSettings.organizationId !== orgId) return null;
+    return this.whatsappSettings;
+  }
+
+  updateWhatsAppSettings(orgId: string, settings: any) {
+    this.whatsappSettings = {
+      ...this.whatsappSettings,
+      ...settings,
+      organizationId: orgId,
+      updatedAt: new Date().toISOString(),
+    };
+    return this.whatsappSettings;
+  }
+
+  getSmartLinks(orgId: string) {
+    return this.smartLinks.filter((l) => l.organizationId === orgId);
+  }
+
+  getSmartLinkBySlug(slug: string) {
+    return this.smartLinks.find((l) => l.slug.toLowerCase() === slug.toLowerCase()) || null;
+  }
+
+  addSmartLink(link: any) {
+    this.smartLinks.unshift(link);
+    return link;
+  }
+
+  recordSmartLinkEvent(event: any) {
+    this.smartLinkEvents.unshift(event);
+    const link = this.smartLinks.find((l) => l.id === event.smartLinkId);
+    if (link) {
+      link.totalClicks += 1;
+    }
+    return event;
+  }
+
+  getSmartLinkEvents(orgId: string) {
+    return this.smartLinkEvents.filter((e) => e.organizationId === orgId);
+  }
+
   getOrganization(orgId: string) {
     if (this.organization.id !== orgId) return null;
     return this.organization;

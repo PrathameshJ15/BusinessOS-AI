@@ -67,6 +67,9 @@ model Organization {
   notifications    Notification[]
   integrations     Integration[]
   subscription     Subscription?
+  whatsappSettings WhatsAppSettings?
+  smartLinks       SmartLink[]
+  smartLinkEvents  SmartLinkEvent[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -189,6 +192,8 @@ model Campaign {
   openedCount     Int          @default(0)
   clickedCount    Int          @default(0)
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  smartLinks      SmartLink[]
+  smartLinkEvents SmartLinkEvent[]
   createdAt       DateTime     @default(now())
 }
 
@@ -278,6 +283,61 @@ model Subscription {
   currency               String       @default("INR")
   razorpaySubscriptionId String?
   organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ─── WhatsApp & Smart Business Links ──────────────────────────────────────────
+
+model WhatsAppSettings {
+  id                    String       @id @default(cuid())
+  organizationId        String       @unique
+  phoneNumber           String
+  isEnabled             Boolean      @default(true)
+  defaultWelcomeMessage String       @default("Hello! I am contacting you from your business.")
+  defaultCtaLabel       String       @default("Chat on WhatsApp")
+  visitorMessage        String       @default("Hi! I visited your website and would like to know more about your services.")
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+}
+
+model SmartLink {
+  id               String            @id @default(cuid())
+  organizationId   String
+  campaignId       String?
+  slug             String            @unique
+  name             String
+  destinationType  String            // "WHATSAPP" | "BOOKING" | "WEBSITE" | "PHONE" | "CUSTOM_URL"
+  destinationValue String
+  isActive         Boolean           @default(true)
+  expiresAt        DateTime?
+  totalClicks      Int               @default(0)
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign         Campaign?         @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  events           SmartLinkEvent[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([organizationId])
+  @@index([slug])
+  @@index([campaignId])
+}
+
+model SmartLinkEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  smartLinkId    String?
+  campaignId     String?
+  eventType      String       // "SMART_LINK_VISIT" | "WHATSAPP_CLICK" | "BOOKING_CLICK" | "WEBSITE_CLICK" | "PHONE_CLICK"
+  referrerHost   String?
+  smartLink      SmartLink?   @relation(fields: [smartLinkId], references: [id], onDelete: Cascade)
+  campaign       Campaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([smartLinkId])
+  @@index([eventType])
+  @@index([createdAt])
 }
 
 // ─── Saarthi AI Conversation Persistence ─────────────────────────────────────

@@ -33,6 +33,7 @@ export default function BusinessDashboard() {
     addCampaign,
     addToast,
     refreshData,
+    t,
   } = useApp();
 
   const [dbStats, setDbStats] = useState<any>(null);
@@ -178,13 +179,13 @@ export default function BusinessDashboard() {
         <div className="relative z-10 space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30 uppercase tracking-wider mb-1">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>AI BUSINESS COMMAND CENTER</span>
+            <span>{t('dashboard.commandCenter', 'AI BUSINESS COMMAND CENTER')}</span>
           </div>
           <h1 className="text-2xl md:text-4xl font-display font-extrabold tracking-tight">
             Welcome back, {session.userName}
           </h1>
           <p className="text-xs md:text-sm text-zinc-400 font-sans">
-            Connected Account: <span className="text-white font-mono font-bold">{session.userEmail}</span> · Role: <span className="text-emerald-400 font-mono font-bold">{session.role}</span>
+            {t('nav.accountContext', 'Connected Account')}: <span className="text-white font-mono font-bold">{session.userEmail}</span> · {t('nav.activeRole', 'Role')}: <span className="text-emerald-400 font-mono font-bold">{session.role}</span>
           </p>
         </div>
 
@@ -194,7 +195,7 @@ export default function BusinessDashboard() {
             className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 active:scale-95"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Ask Saarthi AI</span>
+            <span>{t('dashboard.aiAssistant', 'Ask Saarthi AI')}</span>
           </button>
         </div>
       </div>
@@ -202,7 +203,7 @@ export default function BusinessDashboard() {
       {/* QUICK ACTIONS BAR */}
       <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="flex items-center justify-between mb-3 px-1">
-          <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider">Quick Actions</span>
+          <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider">{t('dashboard.quickActions', 'Quick Actions')}</span>
           <span className="text-[10px] text-zinc-400 font-mono">Real-time DB Execution</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -211,7 +212,7 @@ export default function BusinessDashboard() {
             className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
             <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">Add Customer</p>
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('dashboard.addCustomer', 'Add Customer')}</p>
             <p className="text-[10px] text-zinc-400">Save to Neon DB</p>
           </button>
           <button
@@ -219,7 +220,7 @@ export default function BusinessDashboard() {
             className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
             <Calendar className="w-4 h-4 text-teal-600 dark:text-teal-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">Schedule Appointment</p>
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('dashboard.newBooking', 'Schedule Appointment')}</p>
             <p className="text-[10px] text-zinc-400">Add to roster</p>
           </button>
           <button
@@ -227,7 +228,7 @@ export default function BusinessDashboard() {
             className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
             <Megaphone className="w-4 h-4 text-amber-600 dark:text-amber-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">Dispatch Campaign</p>
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('dashboard.launchCampaign', 'Dispatch Campaign')}</p>
             <p className="text-[10px] text-zinc-400">Broadcast offer</p>
           </button>
           <button
@@ -235,7 +236,7 @@ export default function BusinessDashboard() {
             className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
             <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">AI Workspace</p>
+            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('nav.aiWorkspace', 'AI Workspace')}</p>
             <p className="text-[10px] text-zinc-400">Persisted history</p>
           </button>
         </div>
@@ -245,7 +246,7 @@ export default function BusinessDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Total Customers</span>
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.activeCustomers', 'Total Customers')}</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
               <Users className="w-4 h-4" />
             </div>
@@ -258,7 +259,7 @@ export default function BusinessDashboard() {
 
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Active Tasks</span>
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.todaysPriorities', 'Active Tasks')}</span>
             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-500">
               <CheckSquare className="w-4 h-4" />
             </div>
@@ -271,7 +272,7 @@ export default function BusinessDashboard() {
 
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Appointments</span>
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.totalBookings', 'Appointments')}</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
               <Calendar className="w-4 h-4" />
             </div>
@@ -284,7 +285,7 @@ export default function BusinessDashboard() {
 
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">AI Requests</span>
+            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.aiWorkflows', 'AI Requests')}</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
               <Sparkles className="w-4 h-4" />
             </div>
@@ -301,12 +302,12 @@ export default function BusinessDashboard() {
         {/* Recent Activity */}
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">Recent Activity Log</h3>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">{t('dashboard.recentActivity', 'Recent Activity Log')}</h3>
             <span className="text-[10px] font-mono text-zinc-400">Database audit stream</span>
           </div>
 
           {recentActivities.length === 0 ? (
-            <p className="text-xs text-zinc-400 py-6 text-center">No data available yet.</p>
+            <p className="text-xs text-zinc-400 py-6 text-center">{t('dashboard.noActivityYet', 'No data available yet.')}</p>
           ) : (
             <div className="space-y-3">
               {recentActivities.map((act: any) => (
@@ -328,12 +329,12 @@ export default function BusinessDashboard() {
         {/* Tasks List */}
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">Active Operations & Tasks</h3>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">{t('dashboard.todaysPriorities', 'Active Operations & Tasks')}</h3>
             <span className="text-[10px] font-mono text-zinc-400">{tasks.length} Total</span>
           </div>
 
           {tasks.length === 0 ? (
-            <p className="text-xs text-zinc-400 py-6 text-center">No data available yet.</p>
+            <p className="text-xs text-zinc-400 py-6 text-center">{t('dashboard.noActivityYet', 'No data available yet.')}</p>
           ) : (
             <div className="space-y-2">
               {tasks.map((t: any) => (
@@ -363,45 +364,45 @@ export default function BusinessDashboard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
-              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">Add New Customer</h3>
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{t('dashboard.createCustomerModalTitle', 'Add New Customer')}</h3>
               <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleCreateCustomer} className="space-y-3">
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Full Name</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">{t('dashboard.customerName', 'Full Name')}</label>
                 <input
                   required
                   value={custName}
                   onChange={(e) => setCustName(e.target.value)}
-                  placeholder="e.g. Ramesh Kumar"
+                  placeholder={t('dashboard.customerNamePlaceholder', 'e.g. Ramesh Kumar')}
                   className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Email</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">{t('dashboard.email', 'Email')}</label>
                 <input
                   type="email"
                   value={custEmail}
                   onChange={(e) => setCustEmail(e.target.value)}
-                  placeholder="e.g. ramesh@example.com"
+                  placeholder={t('dashboard.emailPlaceholder', 'e.g. ramesh@example.com')}
                   className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Phone Number</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">{t('dashboard.phone', 'Phone Number')}</label>
                 <input
                   required
                   value={custPhone}
                   onChange={(e) => setCustPhone(e.target.value)}
-                  placeholder="e.g. +91 98000 12345"
+                  placeholder={t('dashboard.phonePlaceholder', 'e.g. +91 98000 12345')}
                   className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">Cancel</button>
+                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
                   {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                  <span>{isSubmitting ? 'Saving...' : 'Save to Neon DB'}</span>
+                  <span>{isSubmitting ? t('dashboard.saving', 'Saving...') : t('dashboard.createCustomer', 'Save to Neon DB')}</span>
                 </button>
               </div>
             </form>
@@ -413,12 +414,12 @@ export default function BusinessDashboard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
-              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">Schedule Appointment</h3>
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{t('dashboard.newBookingModalTitle', 'Schedule Appointment')}</h3>
               <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleCreateBooking} className="space-y-3">
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Customer Name</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">{t('dashboard.bookingCustomerName', 'Customer Name')}</label>
                 <input
                   required
                   value={bookingCustName}
@@ -428,7 +429,7 @@ export default function BusinessDashboard() {
                 />
               </div>
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Select Service</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">{t('dashboard.selectService', 'Select Service')}</label>
                 <select
                   value={bookingServiceId}
                   onChange={(e) => setBookingServiceId(e.target.value)}
@@ -440,10 +441,10 @@ export default function BusinessDashboard() {
                 </select>
               </div>
               <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">Cancel</button>
+                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
                   {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                  <span>{isSubmitting ? 'Saving...' : 'Confirm Appointment'}</span>
+                  <span>{isSubmitting ? t('dashboard.saving', 'Saving...') : t('dashboard.confirmBooking', 'Confirm Appointment')}</span>
                 </button>
               </div>
             </form>
@@ -455,34 +456,34 @@ export default function BusinessDashboard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
-              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">Dispatch Marketing Campaign</h3>
+              <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{t('dashboard.launchCampaignModalTitle', 'Dispatch Marketing Campaign')}</h3>
               <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleCreateCampaign} className="space-y-3">
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Campaign Title</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">{t('dashboard.campaignTitle', 'Campaign Title')}</label>
                 <input
                   required
                   value={campaignTitle}
                   onChange={(e) => setCampaignTitle(e.target.value)}
-                  placeholder="e.g. Weekend Flash Offer"
+                  placeholder={t('dashboard.campaignTitlePlaceholder', 'e.g. Weekend Flash Offer')}
                   className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div>
-                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">Message Content</label>
+                <label className="block font-bold text-zinc-700 dark:text-zinc-300 mb-1">{t('dashboard.campaignContent', 'Message Content')}</label>
                 <textarea
                   value={campaignContent}
                   onChange={(e) => setCampaignContent(e.target.value)}
-                  placeholder="Write promotional broadcast copy..."
+                  placeholder={t('dashboard.campaignContentPlaceholder', 'Write promotional broadcast copy...')}
                   className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500 h-24 resize-none"
                 />
               </div>
               <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">Cancel</button>
+                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
                   {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                  <span>{isSubmitting ? 'Sending...' : 'Dispatch Broadcast'}</span>
+                  <span>{isSubmitting ? t('dashboard.saving', 'Sending...') : t('dashboard.sendCampaign', 'Dispatch Broadcast')}</span>
                 </button>
               </div>
             </form>

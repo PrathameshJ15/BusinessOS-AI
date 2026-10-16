@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { ArrowRight, Menu, X, Sun, Moon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Logo } from '@/components/Logo';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export const Navbar: React.FC = () => {
-  const { theme, toggleTheme } = useApp();
+  const { theme, toggleTheme, t } = useApp();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -18,11 +19,11 @@ export const Navbar: React.FC = () => {
   }, []);
 
   const navLinks = [
-    { label: 'Services', href: '#services' },
-    { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Product', href: '#product' },
-    { label: 'Results', href: '#results' },
-    { label: 'Case Studies', href: '#case-studies' },
+    { label: t('nav.services', 'Services'), href: '#services' },
+    { label: t('nav.howItWorks', 'How It Works'), href: '#how-it-works' },
+    { label: t('nav.product', 'Product'), href: '#product' },
+    { label: t('nav.results', 'Results'), href: '#results' },
+    { label: t('nav.caseStudies', 'Case Studies'), href: '#case-studies' },
   ];
 
   return (
@@ -50,6 +51,8 @@ export const Navbar: React.FC = () => {
           </nav>
 
           <div className="flex items-center gap-3">
+            <LanguageSwitcher variant="landing" />
+
             <button
               onClick={toggleTheme}
               className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -62,14 +65,14 @@ export const Navbar: React.FC = () => {
               href="/login"
               className="text-[13px] font-semibold text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 px-3 py-1.5 rounded-lg transition-colors"
             >
-              Sign In
+              {t('nav.signIn', 'Sign In')}
             </Link>
 
             <Link
               href="/dashboard"
               className="hidden sm:flex px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[13px] rounded-lg transition-all items-center gap-2 shadow-sm"
             >
-              <span>Dashboard</span>
+              <span>{t('nav.dashboard', 'Dashboard')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
@@ -87,6 +90,10 @@ export const Navbar: React.FC = () => {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 bg-white dark:bg-[#09090b] pt-20 px-6 lg:hidden">
           <nav className="flex flex-col gap-1">
+            <div className="pb-3 mb-2 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t('nav.language', 'Language')}</span>
+              <LanguageSwitcher variant="landing" />
+            </div>
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -103,14 +110,14 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileOpen(false)}
                 className="w-full flex px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold text-sm rounded-lg transition-all items-center justify-center gap-2"
               >
-                <span>Sign In with Google</span>
+                <span>{t('nav.signInWithGoogle', 'Sign In with Google')}</span>
               </Link>
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}
                 className="w-full flex px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-all items-center justify-center gap-2"
               >
-                <span>Dashboard</span>
+                <span>{t('nav.dashboard', 'Dashboard')}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

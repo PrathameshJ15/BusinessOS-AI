@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 
 export default function AIWebsiteBuilderPage() {
-  const { website, updateWebsiteBlock, publishWebsiteToggle, addCustomer, canAccess, addToast, refreshData } = useApp();
+  const { website, updateWebsiteBlock, publishWebsiteToggle, addCustomer, canAccess, addToast, refreshData, t } = useApp();
 
   const [activeTab, setActiveTab] = useState<
     'overview' | 'websites' | 'templates' | 'editor' | 'forms' | 'seo' | 'domains'
@@ -124,13 +124,13 @@ export default function AIWebsiteBuilderPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white flex items-center gap-2">
-            <span>AI Web Builder & Lead Funnels</span>
+            <span>{t('website.websiteTitle', 'Storefront & Website Builder')}</span>
             <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-              {website.isPublished ? 'Published Live' : 'Draft Mode'}
+              {website.isPublished ? t('website.published', 'Published Live') : t('website.unpublished', 'Draft Mode')}
             </span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Build high-converting SMB websites in under 60 seconds with AI blocks, online booking forms, and custom domain hosting.
+            {t('website.websiteDesc', 'Customize your storefront, manage blocks, and publish online')}
           </p>
         </div>
 
@@ -141,7 +141,7 @@ export default function AIWebsiteBuilderPage() {
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Generate Site with AI</span>
+              <span>{t('website.generateWithAi', 'Generate Site with AI')}</span>
             </button>
           ) : (
             <span className="text-xs text-zinc-400 font-mono px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">

@@ -35,8 +35,15 @@ import {
   Loader2,
 } from 'lucide-react';
 import { mockStaff } from '@businessos/database';
+import { WhatsAppDraftModal } from '@/components/WhatsAppDraftModal';
+import { PaymentLinkModal } from '@/components/PaymentLinkModal';
 
 export default function CustomerWorkspacePage() {
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [whatsAppModalData, setWhatsAppModalData] = useState<{ name: string; phone: string }>({ name: '', phone: '' });
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentCustomerData, setPaymentCustomerData] = useState<{ name: string; phone: string; amount: number } | null>(null);
+
   const {
     customers,
     leads,
@@ -53,6 +60,7 @@ export default function CustomerWorkspacePage() {
     bulkSendCampaign,
     canAccess,
     addToast,
+    t,
   } = useApp();
 
   const [activeNav, setActiveNav] = useState<'all' | 'customers' | 'leads' | 'pipeline'>('all');
@@ -154,8 +162,12 @@ export default function CustomerWorkspacePage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">Customer Relationship CRM</h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Single source of truth for client records, lead pipelines, activity histories, and AI engagement.</p>
+          <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">
+            {t('customers.crmTitle', 'Customer Relationship CRM')}
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            {t('customers.crmDesc', 'Single source of truth for client records, lead pipelines, activity histories, and AI engagement.')}
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -165,7 +177,7 @@ export default function CustomerWorkspacePage() {
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
-              <span>Add New Client</span>
+              <span>{t('customers.addCustomer', 'Add New Client')}</span>
             </button>
           )}
         </div>
@@ -215,7 +227,13 @@ export default function CustomerWorkspacePage() {
                         : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                     }`}
                   >
-                    {tab === 'all' ? 'All Contacts' : tab}
+                    {tab === 'all'
+                      ? t('customers.allNav', 'All Contacts')
+                      : tab === 'customers'
+                      ? t('customers.customersNav', 'Customers')
+                      : tab === 'leads'
+                      ? t('customers.leadsNav', 'Leads')
+                      : t('customers.pipelineNav', 'Pipeline')}
                   </button>
                 ))}
               </div>
@@ -228,9 +246,9 @@ export default function CustomerWorkspacePage() {
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs font-semibold p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none"
                 >
-                  <option value="ltv">Sort by Lifetime Value</option>
-                  <option value="name">Sort by Client Name</option>
-                  <option value="activity">Sort by Recent Activity</option>
+                  <option value="ltv">{t('customers.sortByLtv', 'Sort by Lifetime Value')}</option>
+                  <option value="name">{t('customers.sortByName', 'Sort by Client Name')}</option>
+                  <option value="activity">{t('customers.sortByActivity', 'Sort by Recent Activity')}</option>
                 </select>
               </div>
             </div>
@@ -240,7 +258,7 @@ export default function CustomerWorkspacePage() {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Search by client name, email, or phone number..."
+                placeholder={t('customers.searchPlaceholder', 'Search customers by name, phone or email...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full text-xs text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
@@ -253,10 +271,20 @@ export default function CustomerWorkspacePage() {
             <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between text-xs text-emerald-900 dark:text-emerald-300">
               <span className="font-bold">{selectedCustomerIds.length} Clients Selected</span>
               <button
-                onClick={handleBulkAction}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] transition-colors shadow"
+                onClick={() => {
+                  const firstSelected = customers.find((c) => selectedCustomerIds.includes(c.id));
+                  if (firstSelected) {
+                    setWhatsAppModalData({
+                      name: `${firstSelected.name} (${selectedCustomerIds.length} selected)`,
+                      phone: firstSelected.phone,
+                    });
+                    setIsWhatsAppModalOpen(true);
+                  }
+                }}
+                className="px-3 py-1.5 bg-[#25D366] hover:bg-[#20ba59] text-white rounded-lg font-bold text-[11px] transition-colors shadow flex items-center gap-1.5 cursor-pointer"
               >
-                Send WhatsApp Offer
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Send WhatsApp Offer</span>
               </button>
             </div>
           )}
@@ -285,7 +313,23 @@ export default function CustomerWorkspacePage() {
                           </div>
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400">{l.phone}</p>
                           <div className="flex items-center justify-between pt-2 border-t border-zinc-200 dark:border-zinc-700 text-[10px]">
-                            <span className="text-zinc-400 font-mono">{l.source}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-zinc-400 font-mono">{l.source}</span>
+                              {l.phone && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setWhatsAppModalData({ name: l.name, phone: l.phone });
+                                    setIsWhatsAppModalOpen(true);
+                                  }}
+                                  className="text-[#25D366] hover:underline flex items-center gap-0.5 font-bold cursor-pointer"
+                                >
+                                  <MessageSquare className="w-3 h-3" />
+                                  <span>Chat</span>
+                                </button>
+                              )}
+                            </div>
                             {stage === 'NEW' && (
                               <button onClick={() => updateLeadStage(l.id, 'QUALIFIED')} className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
                                 Qualify →
@@ -383,7 +427,7 @@ export default function CustomerWorkspacePage() {
               </div>
 
               {/* Profile Quick Actions */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => addBooking({ customerId: selectedProfileCustomer.id, customerName: selectedProfileCustomer.name, customerPhone: selectedProfileCustomer.phone })}
                   className="p-2 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
@@ -393,11 +437,35 @@ export default function CustomerWorkspacePage() {
                 </button>
 
                 <button
-                  onClick={() => createInvoice(selectedProfileCustomer.name, 2500)}
-                  className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                  type="button"
+                  onClick={() => {
+                    setPaymentCustomerData({
+                      name: selectedProfileCustomer.name,
+                      phone: selectedProfileCustomer.phone,
+                      amount: 2500,
+                    });
+                    setIsPaymentModalOpen(true);
+                  }}
+                  className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:border-emerald-500/50"
+                  title="Generate Razorpay Payment Link"
                 >
-                  <CreditCard className="w-3.5 h-3.5 text-zinc-500" />
-                  <span>Issue Invoice</span>
+                  <CreditCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Payment Link</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWhatsAppModalData({
+                      name: selectedProfileCustomer.name,
+                      phone: selectedProfileCustomer.phone,
+                    });
+                    setIsWhatsAppModalOpen(true);
+                  }}
+                  className="p-2 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>WhatsApp</span>
                 </button>
               </div>
 
@@ -563,6 +631,37 @@ export default function CustomerWorkspacePage() {
           </div>
         </div>
       )}
+
+      {/* WhatsApp Direct Chat & AI Draft Modal */}
+      <WhatsAppDraftModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        recipientName={whatsAppModalData.name}
+        recipientPhone={whatsAppModalData.phone}
+        onTrackClick={() => {
+          fetch('/api/analytics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eventType: 'WHATSAPP_CLICK',
+              referrerHost: typeof window !== 'undefined' ? window.location.hostname : '',
+            }),
+          }).catch(() => {});
+        }}
+      />
+
+      {/* Razorpay Payment Link & Simulation Modal */}
+      <PaymentLinkModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => {
+          setIsPaymentModalOpen(false);
+          setPaymentCustomerData(null);
+        }}
+        customerName={paymentCustomerData?.name}
+        customerPhone={paymentCustomerData?.phone}
+        amount={paymentCustomerData?.amount}
+        serviceName="Retainer Consultation / Salon Service"
+      />
     </div>
   );
 }
