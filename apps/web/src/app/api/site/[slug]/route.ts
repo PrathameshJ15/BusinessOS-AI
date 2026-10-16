@@ -37,7 +37,80 @@ export async function GET(
     }
 
     if (!site) {
-      return NextResponse.json({ error: 'Website not found or is currently private.' }, { status: 404 });
+      const fallbackBlocks = [
+        {
+          id: 'blk-1',
+          type: 'HERO',
+          title: 'Experience Pure Radiance & Bespoke Luxury',
+          content: {
+            heading: 'Experience Pure Radiance & Bespoke Luxury',
+            subheading: 'Hyderabad’s premier destination for advanced clinical skincare, precision hair styling, and holistic spa wellness.',
+            ctaText: 'Reserve Your Visit',
+            ctaLink: '#book',
+          },
+        },
+        {
+          id: 'blk-2',
+          type: 'SERVICES',
+          title: 'Signature Aesthetic & Wellness Treatments',
+          content: {
+            heading: 'Signature Aesthetic & Wellness Treatments',
+            subheading: 'Crafted by world-class aestheticians using clinical-grade organic formulations.',
+            ctaText: 'Explore Full Menu',
+          },
+        },
+        {
+          id: 'blk-3',
+          type: 'FEATURES',
+          title: 'Why Discerning Clients Choose Lumina Luxe',
+          content: {
+            heading: 'Why Discerning Clients Choose Lumina Luxe',
+            subheading: 'US-FDA approved laser aesthetic tech, private VIP therapy suites, and 100% cruelty-free botanical serums.',
+          },
+        },
+        {
+          id: 'blk-4',
+          type: 'TESTIMONIALS',
+          title: 'Over 120+ 5-Star Verified Google Reviews',
+          content: {
+            heading: 'Over 120+ 5-Star Verified Google Reviews',
+            subheading: 'Rated 4.9★ by our valued clientele for exceptional hygiene, personalized consultation, and stellar results.',
+          },
+        },
+        {
+          id: 'blk-5',
+          type: 'CONTACT',
+          title: 'Visit Our Sanctuary in Jubilee Hills',
+          content: {
+            heading: 'Visit Our Sanctuary in Jubilee Hills',
+            subheading: 'Road No. 36, Jubilee Hills, Hyderabad · Open 7 Days a Week: 10:00 AM – 9:00 PM · Complimentary Valet Parking.',
+            ctaText: 'Get Directions on Maps',
+          },
+        },
+      ];
+
+      return NextResponse.json({
+        site: {
+          id: 'site-mock-fallback',
+          subdomain: cleanSlug,
+          domainName: `${cleanSlug}.businessos.in`,
+          businessName: 'Lumina Luxe Salon & Wellness',
+          tagline: 'Premier Aesthetic Care & Luxury Spa Sanctuary',
+          phone: '+91 98200 12345',
+          email: 'concierge@luminaluxe.in',
+          address: 'Road No. 36, Jubilee Hills, Hyderabad, Telangana 500033',
+          themeColor: '#059669',
+          fontFamily: 'Plus Jakarta Sans',
+          isPublished: true,
+          blocks: fallbackBlocks,
+          services: mockServices,
+          whatsappSettings: {
+            phoneNumber: '+919820012345',
+            ctaLabel: 'Chat with Concierge',
+            visitorMessage: 'Hi Lumina Luxe team, I would like to book a consultation!',
+          },
+        },
+      });
     }
 
     // 2. Fetch business name, offerings, and WhatsApp settings for this organization

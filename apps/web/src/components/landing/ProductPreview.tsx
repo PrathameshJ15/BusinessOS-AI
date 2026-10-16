@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, Megaphone, Calendar, Sparkles, ExternalLink, TrendingUp, Lock } from 'lucide-react';
+import { LayoutDashboard, Users, Megaphone, Calendar, Sparkles, ExternalLink, TrendingUp, Lock, Globe } from 'lucide-react';
 
 export const ProductPreview: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'customers' | 'marketing' | 'bookings' | 'ai'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'customers' | 'marketing' | 'bookings' | 'ai' | 'website'>('dashboard');
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'website', label: 'AI Storefront & Website', icon: Globe },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'marketing', label: 'Marketing', icon: Megaphone },
     { id: 'bookings', label: 'Bookings', icon: Calendar },
@@ -203,6 +204,64 @@ export const ProductPreview: React.FC = () => {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
                       "Sales down 12% due to low weekend slot occupancy. Recommended: Launch a 20% flash discount campaign to 127 dormant clients."
                     </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'website' && (
+                <motion.div key="website" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }} className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                    <div>
+                      <h3 className="text-base font-semibold text-zinc-900 dark:text-white font-display flex items-center gap-2">
+                        <span>Lumina Luxe Aesthetic Spa</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+                          LIVE STOREFRONT
+                        </span>
+                      </h3>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">Instant AI-generated website with online booking and WhatsApp integration.</p>
+                    </div>
+                    <a
+                      href="/site/lumina-luxe"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>View Live Site</span>
+                    </a>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase">Hero Block</span>
+                      <span className="text-[10px] text-zinc-400 font-mono">lumina-luxe.businessos.in</span>
+                    </div>
+                    <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Experience Pure Radiance & Bespoke Luxury</h4>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      Hyderabad’s premier destination for advanced clinical skincare, precision hair styling, and holistic spa wellness.
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="px-2.5 py-1 rounded-md bg-emerald-600 text-white text-[11px] font-semibold">Reserve Your Visit</span>
+                      <span className="px-2.5 py-1 rounded-md bg-[#25D366] text-white text-[11px] font-semibold">WhatsApp Concierge</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-1">
+                      <div className="flex items-center justify-between text-xs font-bold text-zinc-900 dark:text-white">
+                        <span>Ayurvedic Botanical Facial</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">₹2,499</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Clinical organic formulations with 60-min deep rejuvenation.</p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-1">
+                      <div className="flex items-center justify-between text-xs font-bold text-zinc-900 dark:text-white">
+                        <span>Keratin Smoothing Therapy</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">₹4,999</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Formaldehyde-free intensive hair restructuring with intense silk shine.</p>
+                    </div>
                   </div>
                 </motion.div>
               )}

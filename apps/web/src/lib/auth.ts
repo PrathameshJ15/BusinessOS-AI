@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth-options';
+import { MOCK_AUTH_USERS } from './mock-users';
 import { prisma } from './prisma';
 import { ROLE_PERMISSIONS } from '@businessos/auth';
 
@@ -127,7 +128,9 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
         });
         activeOrgId = org.id;
         activeRole = 'OWNER';
-      } else if (['prathamesh@test.com', 'krushna@test.com', 'admin@test.com', 'ananya@luminaluxe.com'].includes(targetEmail)) {
+      } else if (
+        ['prathamesh@test.com', 'krushna@test.com', 'admin@test.com', 'ananya@luminaluxe.com', 'owner@businessos.com', 'manager@businessos.com', 'staff@businessos.com', 'admin@businessos.com'].includes(targetEmail.toLowerCase())
+      ) {
         // Seed demo accounts belong to org-lumina-101
         activeOrgId = 'org-lumina-101';
       } else {
@@ -171,16 +174,19 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
     };
   } catch (error) {
     console.error('[getServerUser] Error querying database, returning fallback user context:', error);
-    const displayName = sessionUser?.name || targetEmail.split('@')[0];
+    const matchedMock = MOCK_AUTH_USERS.find(
+      (u) => u.email.toLowerCase() === targetEmail.toLowerCase() || u.username.toLowerCase() === targetEmail.toLowerCase()
+    );
+    const displayName = sessionUser?.name || matchedMock?.name || targetEmail.split('@')[0];
     return {
-      id: sessionUser?.id || `usr-${displayName.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
-      name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
-      email: targetEmail,
-      image: sessionUser?.image || null,
-      avatarUrl: sessionUser?.image || null,
+      id: sessionUser?.id || matchedMock?.id || `usr-${displayName.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+      name: sessionUser?.name || matchedMock?.name || (displayName.charAt(0).toUpperCase() + displayName.slice(1)),
+      email: matchedMock?.email || targetEmail,
+      image: sessionUser?.image || matchedMock?.avatarUrl || null,
+      avatarUrl: sessionUser?.image || matchedMock?.avatarUrl || null,
       organizationId: sessionUser?.organizationId || 'org-lumina-101',
-      organizationName: 'Lumina Luxe Salon & Spa',
-      role: sessionUser?.role || 'OWNER',
+      organizationName: 'Lumina Luxe Spa & Salon',
+      role: sessionUser?.role || matchedMock?.role || 'OWNER',
       isGoogleAuth: Boolean(sessionUser),
     };
   }

@@ -214,6 +214,37 @@ export default function BusinessOnboardingPage() {
         {/* ─── Step 1: Basic Information ──────────────────────────────────── */}
         {step === 1 && (
           <form onSubmit={handleNextStep} className="space-y-4 text-xs">
+            <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-xl flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="text-[11px] text-zinc-300">Fast-track with verified business preset:</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setName('Lumina Luxe Aesthetics & Wellness');
+                  setType('SALON');
+                  setIndustry('Wellness, Aesthetics & Precision Cosmetology');
+                  setDescription('Hyderabad premier destination for clinical aesthetics, skincare revitalization, and holistic wellness.');
+                  setEmail('contact@luminaluxe.in');
+                  setPhone('+91 98200 12345');
+                  setWebsite('https://luminaluxe.in');
+                  setAddress('Plot 42, Road No. 36, Jubilee Hills');
+                  setCity('Hyderabad');
+                  setState('Telangana');
+                  setCountry('India');
+                  setEmployeeCount(8);
+                  setBusinessStage('SCALING');
+                  setTargetCustomers('Discerning urban professionals, bridal parties, and aesthetics clients');
+                  setProductsServices('Hydra-Facials, Ayurvedic Scalp Therapy, Keratin Treatments, Laser Aesthetics');
+                  addToast({ type: 'success', title: 'Profile Auto-Filled', message: 'Loaded pre-verified Lumina Luxe business profile.' });
+                }}
+                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[10px] transition-all shrink-0 cursor-pointer"
+              >
+                1-Click Auto-Fill
+              </button>
+            </div>
+
             <div>
               <label className="block font-bold text-zinc-300 mb-1">
                 Business Name <span className="text-emerald-400">*</span>

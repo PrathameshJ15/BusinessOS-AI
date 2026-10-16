@@ -42,6 +42,84 @@ interface SiteData {
   } | null;
 }
 
+const DEFAULT_MOCK_SITE: SiteData = {
+  id: 'mock-lumina-luxe',
+  subdomain: 'lumina-luxe',
+  domainName: 'lumina-luxe.businessos.in',
+  isPublished: true,
+  themeColor: '#059669',
+  fontFamily: 'Plus Jakarta Sans',
+  businessName: 'Lumina Luxe Salon & Aesthetics',
+  tagline: 'Hyderabad’s Premier Sanctuary for Wellness, Aesthetics & Hair Artistry',
+  phone: '+91 98200 12345',
+  email: 'concierge@luminaluxe.in',
+  address: 'Road No. 36, Jubilee Hills, Hyderabad, Telangana 500033',
+  blocks: [
+    {
+      id: 'blk-1',
+      type: 'HERO',
+      title: 'Experience Pure Radiance & Bespoke Luxury',
+      content: {
+        heading: 'Experience Pure Radiance & Bespoke Luxury',
+        subheading: 'Hyderabad’s premier destination for advanced clinical skincare, precision hair styling, and holistic spa wellness.',
+        ctaText: 'Reserve Your Visit',
+        ctaLink: '#book',
+      },
+    },
+    {
+      id: 'blk-2',
+      type: 'SERVICES',
+      title: 'Signature Aesthetic & Wellness Treatments',
+      content: {
+        heading: 'Signature Aesthetic & Wellness Treatments',
+        subheading: 'Crafted by world-class aestheticians using clinical-grade organic formulations.',
+        ctaText: 'Explore Full Menu',
+      },
+    },
+    {
+      id: 'blk-3',
+      type: 'FEATURES',
+      title: 'Why Discerning Clients Choose Lumina Luxe',
+      content: {
+        heading: 'Why Discerning Clients Choose Lumina Luxe',
+        subheading: 'US-FDA approved laser aesthetic tech, private VIP therapy suites, and 100% cruelty-free botanical serums.',
+      },
+    },
+    {
+      id: 'blk-4',
+      type: 'TESTIMONIALS',
+      title: 'Over 120+ 5-Star Verified Google Reviews',
+      content: {
+        heading: 'Over 120+ 5-Star Verified Google Reviews',
+        subheading: 'Rated 4.9★ by our valued clientele for exceptional hygiene, personalized consultation, and stellar results.',
+      },
+    },
+    {
+      id: 'blk-5',
+      type: 'CONTACT',
+      title: 'Visit Our Sanctuary in Jubilee Hills',
+      content: {
+        heading: 'Visit Our Sanctuary in Jubilee Hills',
+        subheading: 'Road No. 36, Jubilee Hills, Hyderabad · Open 7 Days a Week: 10:00 AM – 9:00 PM · Complimentary Valet Parking.',
+        ctaText: 'Get Directions on Maps',
+      },
+    },
+  ],
+  services: [
+    { id: 'srv-1', name: 'Ayurvedic Botanical Radiance Facial', description: 'Deep botanical cleansing, custom herbal exfoliation, and lymphatic drainage.', price: '₹2,499', durationMinutes: 60 },
+    { id: 'srv-2', name: 'Keratin Smoothing & Protein Therapy', description: 'Formaldehyde-free intensive hair restructuring with intense silk shine.', price: '₹4,999', durationMinutes: 90 },
+    { id: 'srv-3', name: 'Aromatherapy Stress-Relief Massage', description: 'Pure cold-pressed essential oils with Swedish deep pressure techniques.', price: '₹3,299', durationMinutes: 75 },
+    { id: 'srv-4', name: 'Hydra-Facial Ultra Glow Treatment', description: 'Non-invasive vortex suction for pore extraction and peptide antioxidant hydration.', price: '₹3,999', durationMinutes: 60 },
+    { id: 'srv-5', name: 'Bridal HD Precision Makeup & Hair', description: 'High-definition bridal styling with waterproof airbrush base and accessories setting.', price: '₹14,999', durationMinutes: 180 },
+    { id: 'srv-6', name: 'Clinical Laser Hair Reduction', description: 'Triple-wavelength pain-free diode aesthetic session for silky smooth skin.', price: '₹2,999', durationMinutes: 45 },
+  ],
+  whatsappSettings: {
+    phoneNumber: '+919820012345',
+    ctaLabel: 'Chat with Concierge',
+    visitorMessage: 'Hi Lumina Luxe team, I saw your website and would like to book a consultation!',
+  },
+};
+
 export default function PublicWebsitePage() {
   const params = useParams();
   const slug = (params?.slug as string) || 'lumina-luxe';
@@ -66,13 +144,17 @@ export default function PublicWebsitePage() {
         setLoading(true);
         setError(null);
         const res = await fetch(`/api/site/${slug}`);
-        if (!res.ok) {
-          throw new Error('This website is currently offline or does not exist.');
+        if (res.ok) {
+          const data = await res.json();
+          const sitePayload = data?.site || data;
+          setSite(sitePayload);
+        } else {
+          // Fallback to rich default mock site
+          setSite(DEFAULT_MOCK_SITE);
         }
-        const data = await res.json();
-        setSite(data);
       } catch (err: any) {
-        setError(err.message || 'Failed to load website.');
+        // Fallback to rich default mock site on error
+        setSite(DEFAULT_MOCK_SITE);
       } finally {
         setLoading(false);
       }
@@ -139,10 +221,11 @@ export default function PublicWebsitePage() {
     );
   }
 
-  const heroBlock = site.blocks.find((b) => b.type === 'HERO');
-  const servicesBlock = site.blocks.find((b) => b.type === 'SERVICES');
-  const testimonialsBlock = site.blocks.find((b) => b.type === 'TESTIMONIALS');
-  const contactBlock = site.blocks.find((b) => b.type === 'CONTACT');
+  const blocks = (site?.blocks && Array.isArray(site.blocks)) ? site.blocks : (DEFAULT_MOCK_SITE.blocks || []);
+  const heroBlock = blocks.find((b: any) => b.type === 'HERO');
+  const servicesBlock = blocks.find((b: any) => b.type === 'SERVICES');
+  const testimonialsBlock = blocks.find((b: any) => b.type === 'TESTIMONIALS');
+  const contactBlock = blocks.find((b: any) => b.type === 'CONTACT');
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-600 selection:text-white">

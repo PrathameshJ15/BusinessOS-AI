@@ -39,6 +39,24 @@ import {
   CalendarCheck,
 } from 'lucide-react';
 
+const PREBUILT_SOCIAL_TEMPLATES = [
+  {
+    platform: 'INSTAGRAM',
+    topic: 'Weekend Glow & Rejuvenation Rituals',
+    content: `✨ WEEKEND GLOW-UP RITUALS ✨\n\nTake time to pause, breathe, and renew. Our Master Aestheticians bring you the signature Korean Glass-Skin & Botanical Facial at flat 20% off this Saturday & Sunday.\n\n💆‍♀️ Includes deep ultrasonic cleanse, peptide infusion & cooling jade therapy.\n\n📍 Lumina Luxe Salon & Aesthetics, Banjara Hills\n📲 Tap link in bio or WhatsApp +91 98200 12345 to reserve!\n\n#SkinCareRituals #GlowUp #HyderabadSalon #SelfCareSunday #LuminaLuxe #CleanBeauty`,
+  },
+  {
+    platform: 'WHATSAPP',
+    topic: 'VIP Member Exclusive Flash Voucher',
+    content: `🌟 *Lumina Luxe VIP Privileges* 🌟\n\nDear Valued Guest, as one of our top members, here is your exclusive weekend treat:\n\n✨ *Flat ₹500 OFF* on any Hair Spa, Keratin, or Body Wellness package above ₹1,999.\nUse Code: *VIPGLOW500*\n\n📅 Valid till this Sunday only.\n👉 Click here to reserve your priority slot: https://luminaluxe.in/site/lumina-luxe\n\nReply *BOOK* to speak with our concierge directly!`,
+  },
+  {
+    platform: 'GOOGLE_POST',
+    topic: 'Bridal & Occasion Styling Consultations',
+    content: `Now Booking: Complete Bridal & Festive Styling Suites for the Upcoming Season! 💍\n\nFrom HD Airbrush Makeup and tailored pre-bridal skin therapy to luxury hair design, our certified bridal team ensures your special day is timeless perfection. Complimentary 30-min consultation slot available this week.\n\nCall +91 98200 12345 or visit our salon at Road No. 12, Banjara Hills, Hyderabad.`,
+  },
+];
+
 export default function MarketingWorkspacePage() {
   const { campaigns, reviews, customers, addCampaign, replyToReview, canAccess, addToast, t } = useApp();
 
@@ -416,10 +434,77 @@ export default function MarketingWorkspacePage() {
             </div>
             <button
               onClick={() => setActiveTab('social')}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center gap-2 shrink-0"
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center gap-2 shrink-0 cursor-pointer"
             >
               <span>Draft AI Social Post</span>
             </button>
+          </div>
+
+          {/* Recent Broadcasts Preview Table */}
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                  <Megaphone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Recent High-Performing Broadcasts</span>
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  Real-time delivery status, open rates, and direct booking click conversions across active campaigns.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('campaigns')}
+                className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
+              >
+                View All Campaigns →
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-zinc-100 dark:border-zinc-800 text-[10px] font-mono uppercase text-zinc-400">
+                    <th className="py-2.5 px-3">Campaign Name</th>
+                    <th className="py-2.5 px-3">Channel</th>
+                    <th className="py-2.5 px-3">Audience Segment</th>
+                    <th className="py-2.5 px-3">Delivered</th>
+                    <th className="py-2.5 px-3">Open Rate</th>
+                    <th className="py-2.5 px-3">Click Rate</th>
+                    <th className="py-2.5 px-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {campaigns.slice(0, 4).map((c) => (
+                    <tr key={c.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40 transition-colors">
+                      <td className="py-3 px-3 font-bold text-zinc-900 dark:text-white">{c.name}</td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                          {c.channel}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-zinc-600 dark:text-zinc-400 font-mono text-[11px]">
+                        {c.targetAudience.replace(/_/g, ' ')}
+                      </td>
+                      <td className="py-3 px-3 font-mono font-bold text-zinc-900 dark:text-white">
+                        {c.deliveredCount} / {c.totalRecipients}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                        {c.deliveredCount > 0 ? `${Math.round((c.openedCount / c.deliveredCount) * 100)}%` : '0%'}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                        {c.deliveredCount > 0 ? `${Math.round((c.clickedCount / c.deliveredCount) * 100)}%` : '0%'}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+                          {c.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -766,13 +851,101 @@ export default function MarketingWorkspacePage() {
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Generate AI Post Draft</span>
+              <span>{isGeneratingSocialCopy ? 'Drafting with Saarthi AI...' : 'Generate AI Post Draft'}</span>
             </button>
 
-            {generatedAiOutput && (
-              <div className="p-4 bg-zinc-900 text-zinc-100 rounded-xl border border-zinc-800 space-y-2">
-                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{aiContentType} Post Output</span>
+            {generatedAiOutput ? (
+              <div className="p-4 bg-zinc-900 text-zinc-100 rounded-xl border border-zinc-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{aiContentType} Post Output</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedAiOutput);
+                        addToast({ type: 'success', title: 'Copied to Clipboard', message: 'Social post ready to share!' });
+                      }}
+                      className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGeneratedAiOutput('')}
+                      className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-lg text-xs font-semibold transition-all"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
                 <p className="text-xs whitespace-pre-wrap font-multilingual leading-[1.65] text-zinc-300">{generatedAiOutput}</p>
+              </div>
+            ) : (
+              <div className="pt-2 space-y-3">
+                <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                  <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Ready-to-Use High-Impact Social Drafts</span>
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-mono">1-Click Load & Copy</span>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2.5">
+                  {PREBUILT_SOCIAL_TEMPLATES.map((tpl, i) => (
+                    <div
+                      key={i}
+                      className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/40 transition-all space-y-2 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                              tpl.platform === 'INSTAGRAM'
+                                ? 'bg-pink-100 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300'
+                                : tpl.platform === 'WHATSAPP'
+                                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                                : 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
+                            }`}
+                          >
+                            {tpl.platform}
+                          </span>
+                          <span className="font-bold text-xs text-zinc-900 dark:text-white">{tpl.topic}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAiContentType(tpl.platform as any);
+                              setAiPromptTopic(tpl.topic);
+                              setGeneratedAiOutput(tpl.content);
+                              addToast({ type: 'info', title: 'Loaded into Editor', message: `${tpl.topic} loaded.` });
+                            }}
+                            className="px-2 py-1 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded text-[11px] font-semibold border border-zinc-200 dark:border-zinc-700 transition-all"
+                          >
+                            Use in Editor
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(tpl.content);
+                              addToast({ type: 'success', title: 'Copied to Clipboard', message: `${tpl.topic} ready to paste.` });
+                            }}
+                            className="p-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded transition-all"
+                            title="Copy text"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-300 line-clamp-2 italic font-multilingual leading-relaxed">
+                        "{tpl.content.split('\n')[0]}..."
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

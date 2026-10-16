@@ -10,6 +10,7 @@
     "dev": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api",
     "build": "npm run build --workspaces --if-present",
+    "postinstall": "prisma generate --schema=./packages/database/prisma/schema.prisma",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "node --test apps/api/src/tests/*.spec.ts"

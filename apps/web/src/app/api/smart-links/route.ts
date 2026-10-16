@@ -30,6 +30,45 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
+    if (!links || links.length === 0) {
+      const fallbackLinks = [
+        {
+          id: 'sml-mock-1',
+          name: 'Festive Radiance WhatsApp VIP',
+          slug: 'glow-vip',
+          destinationType: 'WHATSAPP',
+          destinationValue: '+919820012345',
+          isActive: true,
+          totalClicks: 248,
+          createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+          campaign: { id: 'c-1', name: 'Festive Radiance Special', channel: 'WHATSAPP', status: 'ACTIVE' },
+        },
+        {
+          id: 'sml-mock-2',
+          name: 'Priority Storefront Booking',
+          slug: 'book-now',
+          destinationType: 'BOOKING',
+          destinationValue: '/site/lumina-luxe#booking',
+          isActive: true,
+          totalClicks: 185,
+          createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+          campaign: { id: 'c-2', name: 'Weekend Flash Sale', channel: 'SMS', status: 'COMPLETED' },
+        },
+        {
+          id: 'sml-mock-3',
+          name: 'Digital Treatment Brochure',
+          slug: 'menu-pdf',
+          destinationType: 'URL',
+          destinationValue: 'https://luminaluxe.in/site/lumina-luxe#services',
+          isActive: true,
+          totalClicks: 94,
+          createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+          campaign: null,
+        },
+      ];
+      return NextResponse.json({ links: fallbackLinks });
+    }
+
     return NextResponse.json({ links });
   } catch (error) {
     console.error('[GET /api/smart-links] Error:', error);
