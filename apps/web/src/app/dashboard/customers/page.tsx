@@ -37,12 +37,15 @@ import {
 import { mockStaff } from '@businessos/database';
 import { WhatsAppDraftModal } from '@/components/WhatsAppDraftModal';
 import { PaymentLinkModal } from '@/components/PaymentLinkModal';
+import { AIReactivationModal, SimulationResult } from '@/components/AIReactivationModal';
 
 export default function CustomerWorkspacePage() {
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [whatsAppModalData, setWhatsAppModalData] = useState<{ name: string; phone: string }>({ name: '', phone: '' });
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentCustomerData, setPaymentCustomerData] = useState<{ name: string; phone: string; amount: number } | null>(null);
+  const [isReactivationModalOpen, setIsReactivationModalOpen] = useState(false);
+  const [lastSimulation, setLastSimulation] = useState<SimulationResult | null>(null);
 
   const {
     customers,
@@ -192,19 +195,27 @@ export default function CustomerWorkspacePage() {
           <div>
             <h4 className="text-xs font-bold text-white flex items-center gap-2">
               <span>Saarthi Customer Retention Insight</span>
-              <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">AI Active</span>
+              <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+                {lastSimulation ? 'Simulation Active' : 'AI Active'}
+              </span>
             </h4>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Identified 127 clients inactive for 30+ days. Predicted 24% revenue surge if WhatsApp reactivation offer is dispatched today.
+              {lastSimulation ? (
+                <span>
+                  Last simulation executed: <strong className="text-emerald-400 font-mono">{lastSimulation.deliveredCount}</strong> dispatched · <strong className="text-emerald-400 font-mono">{lastSimulation.conversions}</strong> reactivated (+₹{lastSimulation.projectedRevenue.toLocaleString()} surge).
+                </span>
+              ) : (
+                'Identified 127 clients inactive for 30+ days. Predicted 24% revenue surge if WhatsApp reactivation offer is dispatched today.'
+              )}
             </p>
           </div>
         </div>
         <button
-          onClick={() => bulkSendCampaign(customers.slice(0, 5).map((c) => c.id))}
-          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all shadow shrink-0 flex items-center gap-1.5"
+          onClick={() => setIsReactivationModalOpen(true)}
+          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all shadow shrink-0 flex items-center gap-1.5 group"
         >
-          <Bot className="w-3.5 h-3.5" />
-          <span>Launch AI Reactivation</span>
+          <Bot className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
+          <span>{lastSimulation ? 'Rerun AI Reactivation' : 'Launch AI Reactivation'}</span>
         </button>
       </div>
 
@@ -661,6 +672,13 @@ export default function CustomerWorkspacePage() {
         customerPhone={paymentCustomerData?.phone}
         amount={paymentCustomerData?.amount}
         serviceName="Retainer Consultation / Salon Service"
+      />
+
+      {/* Saarthi AI Reactivation Simulation Modal */}
+      <AIReactivationModal
+        isOpen={isReactivationModalOpen}
+        onClose={() => setIsReactivationModalOpen(false)}
+        onSimulationApplied={(result) => setLastSimulation(result)}
       />
     </div>
   );

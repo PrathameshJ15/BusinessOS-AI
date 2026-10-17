@@ -171,7 +171,21 @@ This document serves as the single source of truth for **completed features**, *
   - **Hinglish Input**: `"Mere business ke liye ek marketing post bana do."` -> Verified 100% Latin preservation in Plus Jakarta Sans, relaxed line-height.
   - **Mixed Language**: `"माझे leads आणि bookings दाखवा."` -> Verified mixed Latin/Devanagari rendering, safe matra clearance.
   - **Long Formatted Response**: Multiline Hindi/Marathi response with headings, bullet lists, numbered lists, and bold text parsed and rendered with zero clipping or layout shifts.
-  - **Typecheck & Build**: `tsc --noEmit` and `next build` passed with exit code 0 across all 17 routes.
+### P. Runnable AI Reactivation Campaign Simulation Engine
+- [x] **Simulation Trigger & Banner Integration**: Connected the "Launch AI Reactivation" button in the Customer Relationship CRM (`apps/web/src/app/dashboard/customers/page.tsx`) to the interactive `<AIReactivationModal />`.
+- [x] **Dynamic Audience Segmentation**: Supports three target cohorts: "All 127 Inactive Clients (30+ Days)", "High-LTV Dormant VIPs (₹5,000+)", and "Critical Churn Risk (60+ Days)" with custom lift estimations (+19% to +38%).
+- [x] **AI Incentive & Offer Selector**: Configurable offer presets including "25% Weekend Spa Special" (`REJUVENATE25`), "Flat ₹500 Welcome-Back Voucher" (`VIP500BACK`), and "Complimentary Express Glow Add-on" (`GLOWCOMPLIMENT`).
+- [x] **Multilingual AI Copy Generation**: Real-time script drafts in English, Hindi (हिन्दी), Marathi (मराठी), and Hinglish with automatic smart link attribution (`/go/reactivate-vip`) and Devanagari typography (`font-multilingual leading-[1.7]`).
+- [x] **Real-Time Step-by-Step Simulation Engine**:
+  - Configurable simulation speeds: Normal (1x), Fast (2x), and Turbo (4x).
+  - 4-phase execution: RFM Analysis -> Batch WhatsApp Gateway Dispatch -> Read & Click Telemetry -> Booking Conversions.
+  - Streaming live event console with client names from DB, WhatsApp blue-tick receipts, tracking link clicks, and instant booking revenue generation.
+  - Real-time counters: Dispatched (127), Delivered (125 · 98.4%), Opened (108 · 85%), Link Clicks (54 · 42%), Reactivated (31 · 24.4%), Projected Revenue (+₹38,440).
+- [x] **CRM & Marketing Hub Synchronization**:
+  - One-click "Apply to CRM & Marketing" creates a persistent `Campaign` record via `addCampaign`.
+  - Appends timestamped audit notes to client records in the CRM timeline.
+  - Updates the CRM alert banner to reflect active simulation statistics with option to rerun at any time.
+- [x] **Verification**: TypeScript check (`npm run typecheck --prefix apps/web`) and production build (`npm run build --prefix apps/web`) passed with 0 errors across all 16 static routes and dynamic endpoints.
 
 ---
 
