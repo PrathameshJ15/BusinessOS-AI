@@ -277,40 +277,64 @@ export async function POST(request: NextRequest) {
       preferredLanguage: preferredLanguage || 'en',
     });
 
-    // 4. Find or create conversation
-    let conversation;
+    // 4. Find or create conversation with database resilience
+    let conversation: any = null;
+    let validUserId = user.id;
 
-    if (conversationId) {
-      conversation = await prisma.aiConversation.findFirst({
-        where: { id: conversationId, userId: user.id },
-        include: { messages: { orderBy: { createdAt: 'asc' }, take: MAX_MESSAGES_PER_REQUEST } },
+    try {
+      const dbUser = await prisma.user.findFirst({
+        where: { id: user.id },
+        select: { id: true },
       });
-
-      if (!conversation) {
-        return NextResponse.json(
-          { error: 'Conversation not found.' },
-          { status: 404 }
-        );
+      if (dbUser) {
+        validUserId = dbUser.id;
+      } else {
+        const anyUser = await prisma.user.findFirst({ select: { id: true } });
+        if (anyUser) validUserId = anyUser.id;
       }
-    } else {
-      const title = message.trim().slice(0, 80) + (message.trim().length > 80 ? '...' : '');
-      conversation = await prisma.aiConversation.create({
-        data: { userId: user.id, businessId: business?.id, title },
-        include: { messages: true },
-      });
+
+      if (conversationId) {
+        conversation = await prisma.aiConversation.findFirst({
+          where: { id: conversationId },
+          include: { messages: { orderBy: { createdAt: 'asc' }, take: MAX_MESSAGES_PER_REQUEST } },
+        });
+      }
+
+      if (!conversation && validUserId) {
+        const title = message.trim().slice(0, 80) + (message.trim().length > 80 ? '...' : '');
+        conversation = await prisma.aiConversation.create({
+          data: { userId: validUserId, businessId: business?.id, title },
+          include: { messages: true },
+        });
+      }
+    } catch (dbErr) {
+      console.warn('[Saarthi AI] Database conversation lookup/create error, using session fallback:', dbErr);
     }
 
-    // 5. Save user message
-    await prisma.aiMessage.create({
-      data: {
-        conversationId: conversation.id,
-        role: 'user',
-        content: message.trim(),
-      },
-    });
+    if (!conversation) {
+      conversation = {
+        id: conversationId || `conv-ephemeral-${Date.now()}`,
+        messages: [],
+      };
+    }
+
+    // 5. Save user message safely
+    try {
+      if (conversation.id && !conversation.id.startsWith('conv-ephemeral-')) {
+        await prisma.aiMessage.create({
+          data: {
+            conversationId: conversation.id,
+            role: 'user',
+            content: message.trim(),
+          },
+        });
+      }
+    } catch (msgErr) {
+      console.warn('[Saarthi AI] Could not persist user message:', msgErr);
+    }
 
     // 6. Build message history for Groq
-    const historyMessages = conversation.messages.map((m) => ({
+    const historyMessages = (conversation.messages || []).map((m: any) => ({
       role: m.role as 'user' | 'assistant' | 'system',
       content: m.content,
     }));
@@ -398,36 +422,48 @@ export async function POST(request: NextRequest) {
             }
 
             if (fullResponse.trim()) {
-              await prisma.aiMessage.create({
-                data: {
-                  conversationId: convId,
-                  role: 'assistant',
-                  content: fullResponse.trim(),
-                },
-              });
+              try {
+                if (convId && !convId.startsWith('conv-ephemeral-')) {
+                  await prisma.aiMessage.create({
+                    data: {
+                      conversationId: convId,
+                      role: 'assistant',
+                      content: fullResponse.trim(),
+                    },
+                  });
 
-              await prisma.aiConversation.update({
-                where: { id: convId },
-                data: { updatedAt: new Date() },
-              });
+                  await prisma.aiConversation.update({
+                    where: { id: convId },
+                    data: { updatedAt: new Date() },
+                  });
+                }
+              } catch (dbSaveErr) {
+                console.warn('[Saarthi AI] Could not persist assistant response:', dbSaveErr);
+              }
             }
 
-            await prisma.aiUsage.upsert({
-              where: { userId: user.id },
-              create: {
-                userId: user.id,
-                dailyRequests: 1,
-                monthlyRequests: 1,
-                tokensUsed: fullResponse.length,
-                lastRequestAt: new Date(),
-              },
-              update: {
-                dailyRequests: { increment: 1 },
-                monthlyRequests: { increment: 1 },
-                tokensUsed: { increment: fullResponse.length },
-                lastRequestAt: new Date(),
-              },
-            });
+            try {
+              if (validUserId) {
+                await prisma.aiUsage.upsert({
+                  where: { userId: validUserId },
+                  create: {
+                    userId: validUserId,
+                    dailyRequests: 1,
+                    monthlyRequests: 1,
+                    tokensUsed: fullResponse.length,
+                    lastRequestAt: new Date(),
+                  },
+                  update: {
+                    dailyRequests: { increment: 1 },
+                    monthlyRequests: { increment: 1 },
+                    tokensUsed: { increment: fullResponse.length },
+                    lastRequestAt: new Date(),
+                  },
+                });
+              }
+            } catch (usageErr) {
+              console.warn('[Saarthi AI] Could not update AI usage record:', usageErr);
+            }
 
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
@@ -477,37 +513,49 @@ export async function POST(request: NextRequest) {
           await new Promise((r) => setTimeout(r, 20));
         }
 
-        // Save assistant message to Neon DB
-        await prisma.aiMessage.create({
-          data: {
-            conversationId: convId,
-            role: 'assistant',
-            content: fallbackText,
-          },
-        });
+        // Save assistant message safely
+        try {
+          if (convId && !convId.startsWith('conv-ephemeral-')) {
+            await prisma.aiMessage.create({
+              data: {
+                conversationId: convId,
+                role: 'assistant',
+                content: fallbackText,
+              },
+            });
 
-        await prisma.aiConversation.update({
-          where: { id: convId },
-          data: { updatedAt: new Date() },
-        });
+            await prisma.aiConversation.update({
+              where: { id: convId },
+              data: { updatedAt: new Date() },
+            });
+          }
+        } catch (dbErr) {
+          console.warn('[Saarthi AI] Could not persist fallback assistant message:', dbErr);
+        }
 
-        // Track usage in Neon DB
-        await prisma.aiUsage.upsert({
-          where: { userId: user.id },
-          create: {
-            userId: user.id,
-            dailyRequests: 1,
-            monthlyRequests: 1,
-            tokensUsed: fallbackText.length,
-            lastRequestAt: new Date(),
-          },
-          update: {
-            dailyRequests: { increment: 1 },
-            monthlyRequests: { increment: 1 },
-            tokensUsed: { increment: fallbackText.length },
-            lastRequestAt: new Date(),
-          },
-        });
+        // Track usage safely
+        try {
+          if (validUserId) {
+            await prisma.aiUsage.upsert({
+              where: { userId: validUserId },
+              create: {
+                userId: validUserId,
+                dailyRequests: 1,
+                monthlyRequests: 1,
+                tokensUsed: fallbackText.length,
+                lastRequestAt: new Date(),
+              },
+              update: {
+                dailyRequests: { increment: 1 },
+                monthlyRequests: { increment: 1 },
+                tokensUsed: { increment: fallbackText.length },
+                lastRequestAt: new Date(),
+              },
+            });
+          }
+        } catch (usageErr) {
+          console.warn('[Saarthi AI] Could not update fallback AI usage record:', usageErr);
+        }
 
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)

@@ -187,6 +187,21 @@ This document serves as the single source of truth for **completed features**, *
   - Updates the CRM alert banner to reflect active simulation statistics with option to rerun at any time.
 - [x] **Verification**: TypeScript check (`npm run typecheck --prefix apps/web`) and production build (`npm run build --prefix apps/web`) passed with 0 errors across all 16 static routes and dynamic endpoints.
 
+### Q. AI Social Post & Caption Reach Simulation Engine
+- [x] **Social Simulation Modal**: Built `apps/web/src/components/AISocialSimulationModal.tsx` providing a runnable social marketing engine for Instagram, WhatsApp, and Google Business Profile posts.
+- [x] **Multi-Tier Reach Strategies**: Supports Organic Follower Reach (~1,850 views), Local Community Viral Surge (~4,200 views), and AI Targeted Micro-Boost (~9,800 views with ₹500 budget).
+- [x] **Realistic Channel Mockups**: Provides responsive post previews styled specifically for Instagram feed/reels (with account avatar, verified tick, bio link button, like/comment counts), WhatsApp status broadcasts, and Google local listings.
+- [x] **Real-Time Step-by-Step Simulation Engine**:
+  - Configurable speeds: Normal (1x), Fast (2x), and Turbo (4x).
+  - 4-phase algorithm lifecycle: Algorithm Indexing -> Feed & Search Reach -> Engagement & DMs -> Direct Appointment Bookings.
+  - Streaming live event console with client names, algorithm hook scores, link click events (`/go/social-special`), and booking revenues.
+  - Real-time live counters: Impressions, Reactions & Likes (12.5% rate), Inbound DMs, Smart Clicks (4.4% CTR), Bookings (15.5% conversion), and Projected Revenue (+₹24,650).
+- [x] **Marketing Hub Integration**:
+  - Integrated "Simulate Post Reach" primary button alongside "Generate AI Post Draft" in the AI Social Post card (`apps/web/src/app/dashboard/marketing/page.tsx`).
+  - Added "Simulate Reach" quick action when custom AI copy is drafted, and individual "Simulate" buttons on all pre-built social templates.
+  - "Log Campaign in Hub" creates a persistent `Campaign` record via `addCampaign` and refreshes smart link telemetry.
+- [x] **Verification**: `npm run typecheck --prefix apps/web` and `npm run build --prefix apps/web` passed with exit code 0.
+
 ---
 
 ## 2. Completed Implementation Roadmap

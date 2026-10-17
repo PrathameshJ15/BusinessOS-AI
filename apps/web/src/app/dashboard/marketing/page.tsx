@@ -37,7 +37,10 @@ import {
   Globe,
   PhoneCall,
   CalendarCheck,
+  Play,
+  Zap,
 } from 'lucide-react';
+import { AISocialSimulationModal, SocialSimulationResult } from '@/components/AISocialSimulationModal';
 
 const PREBUILT_SOCIAL_TEMPLATES = [
   {
@@ -80,6 +83,38 @@ export default function MarketingWorkspacePage() {
   const [isGeneratingSocialCopy, setIsGeneratingSocialCopy] = useState(false);
   const [generatedAiOutput, setGeneratedAiOutput] = useState('');
   const [reviewReplyInputs, setReviewReplyInputs] = useState<{ [key: string]: string }>({});
+
+  // ─── AI Social Post Simulation State ─────────────────────────────────────
+  const [isSocialSimulationOpen, setIsSocialSimulationOpen] = useState(false);
+  const [socialSimulationData, setSocialSimulationData] = useState<{
+    platform: 'INSTAGRAM' | 'WHATSAPP' | 'GOOGLE_POST';
+    topic: string;
+    content: string;
+  }>({
+    platform: 'INSTAGRAM',
+    topic: '',
+    content: '',
+  });
+
+  const handleOpenSocialSimulation = (
+    plat?: 'INSTAGRAM' | 'WHATSAPP' | 'GOOGLE_POST',
+    top?: string,
+    cont?: string
+  ) => {
+    const selectedPlat = plat || aiContentType || 'INSTAGRAM';
+    const selectedTopic = (top || aiPromptTopic).trim() || 'Weekend Rejuvenation Special';
+    const selectedContent =
+      cont ||
+      generatedAiOutput ||
+      `✨ ${selectedTopic.toUpperCase()} ✨\n\nExperience luxury wellness with our certified therapists. Reserve your spot today via link in bio!\n\n#LuminaLuxe #SelfCare #SalonWellness`;
+
+    setSocialSimulationData({
+      platform: selectedPlat,
+      topic: selectedTopic,
+      content: selectedContent,
+    });
+    setIsSocialSimulationOpen(true);
+  };
 
   // ─── Smart Business Links & Analytics State ──────────────────────────────
   const [smartLinks, setSmartLinks] = useState<any[]>([]);
@@ -310,8 +345,9 @@ export default function MarketingWorkspacePage() {
               if (!dataStr) continue;
               try {
                 const parsed = JSON.parse(dataStr);
-                if (parsed.type === 'content' && parsed.content) {
-                  accumulated += parsed.content;
+                const chunkContent = parsed.content || parsed.delta;
+                if ((parsed.type === 'content' || parsed.type === 'delta') && chunkContent) {
+                  accumulated += chunkContent;
                   setGeneratedAiOutput(accumulated);
                 }
               } catch {}
@@ -845,20 +881,39 @@ export default function MarketingWorkspacePage() {
               />
             </div>
 
-            <button
-              onClick={handleGenerateSocialCopy}
-              disabled={isGeneratingSocialCopy || !aiPromptTopic.trim()}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>{isGeneratingSocialCopy ? 'Drafting with Saarthi AI...' : 'Generate AI Post Draft'}</span>
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                onClick={handleGenerateSocialCopy}
+                disabled={isGeneratingSocialCopy || !aiPromptTopic.trim()}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>{isGeneratingSocialCopy ? 'Drafting with Saarthi AI...' : 'Generate AI Post Draft'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleOpenSocialSimulation(aiContentType, aiPromptTopic, generatedAiOutput)}
+                className="w-full py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow flex items-center justify-center gap-2 group"
+              >
+                <Play className="w-3.5 h-3.5 fill-white group-hover:scale-110 transition-transform" />
+                <span>Simulate Post Reach</span>
+              </button>
+            </div>
 
             {generatedAiOutput ? (
               <div className="p-4 bg-zinc-900 text-zinc-100 rounded-xl border border-zinc-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{aiContentType} Post Output</span>
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSocialSimulation(aiContentType, aiPromptTopic, generatedAiOutput)}
+                      className="px-2.5 py-1 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs"
+                    >
+                      <Play className="w-3 h-3 fill-white" />
+                      <span>Simulate Reach</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -914,6 +969,15 @@ export default function MarketingWorkspacePage() {
                         </div>
 
                         <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenSocialSimulation(tpl.platform as any, tpl.topic, tpl.content)}
+                            className="px-2 py-1 bg-pink-50 hover:bg-pink-100 dark:bg-pink-950/60 dark:hover:bg-pink-900/60 text-pink-700 dark:text-pink-300 rounded text-[11px] font-semibold border border-pink-200 dark:border-pink-800 transition-all flex items-center gap-1"
+                            title="Simulate Post Reach"
+                          >
+                            <Play className="w-3 h-3 fill-current" />
+                            <span>Simulate</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => {
@@ -1253,6 +1317,19 @@ export default function MarketingWorkspacePage() {
           </div>
         </div>
       )}
+
+      {/* AI Social Campaign & Reach Simulation Modal */}
+      <AISocialSimulationModal
+        isOpen={isSocialSimulationOpen}
+        onClose={() => setIsSocialSimulationOpen(false)}
+        platform={socialSimulationData.platform}
+        topic={socialSimulationData.topic}
+        initialContent={socialSimulationData.content}
+        smartLinkSlug={smartLinks.length > 0 ? smartLinks[0].slug : undefined}
+        onSimulationApplied={(res) => {
+          loadSmartLinksAndAnalytics();
+        }}
+      />
     </div>
   );
 }
