@@ -12,13 +12,18 @@
     "start": "npm run start --workspace=apps/web",
     "start:web": "npm run start --workspace=apps/web",
     "start:api": "node apps/api/dist/main.js",
-    "build": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build --workspace=packages/shared && npm run build --workspace=packages/database && npm run build --workspace=packages/auth && npm run build --workspace=packages/ai",
+    "build:api": "npm run build:packages && npm run build --workspace=apps/api",
+    "build:web": "npm run build:packages && npm run build --workspace=apps/web",
+    "build:all": "npm run build:packages && npm run build --workspace=apps/api && npm run build --workspace=apps/web",
+    "build": "npm run build:api",
     "postinstall": "prisma generate --schema=./packages/database/prisma/schema.prisma",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "node --test apps/api/src/tests/*.spec.ts"
   },
   "devDependencies": {
+    "@types/node": "^20.12.12",
     "typescript": "^5.4.5"
   }
 }
