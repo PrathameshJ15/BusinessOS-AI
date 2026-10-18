@@ -29,7 +29,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 BusinessOS NestJS Production API running at: http://localhost:${port}/api`);
   console.log(`📄 Swagger OpenAPI Documentation running at: http://localhost:${port}/api/docs`);
 }
