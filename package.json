@@ -9,6 +9,9 @@
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
     "dev:api": "npm run dev --workspace=apps/api",
+    "start": "npm run start --workspace=apps/web",
+    "start:web": "npm run start --workspace=apps/web",
+    "start:api": "node apps/api/dist/main.js",
     "build": "npm run build --workspaces --if-present",
     "postinstall": "prisma generate --schema=./packages/database/prisma/schema.prisma",
     "typecheck": "npm run typecheck --workspaces --if-present",
