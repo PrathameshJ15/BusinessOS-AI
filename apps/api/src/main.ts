@@ -1,8 +1,11 @@
-/// <reference types="node" />
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+
+declare const process: {
+  env: Record<string, string | undefined>;
+};
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
