@@ -412,16 +412,26 @@ export default function AIWorkspacePage() {
       <aside
         className={`${
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-72 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col transition-transform duration-200`}
+        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-72 max-w-[85vw] h-full bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col transition-transform duration-200`}
       >
         {/* Sidebar header */}
-        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="p-3.5 sm:p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-2">
           <button
-            onClick={handleNewChat}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 active:scale-[0.98]"
+            onClick={() => {
+              handleNewChat();
+              setMobileSidebarOpen(false);
+            }}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20 active:scale-[0.98] cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>New Chat</span>
+          </button>
+          <button
+            onClick={() => setMobileSidebarOpen(false)}
+            className="lg:hidden p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-white rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            aria-label="Close conversations menu"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -467,7 +477,7 @@ export default function AIWorkspacePage() {
                 <>
                   <div
                     className="flex-1 min-w-0"
-                    onClick={() => handleSelectConversation(conv.id)}
+                    onClick={() => { handleSelectConversation(conv.id); setMobileSidebarOpen(false); }}
                   >
                     <p className={`truncate font-multilingual ${containsDevanagari(conv.title) ? 'leading-normal' : ''}`}>{conv.title}</p>
                     <span className="text-[9px] font-mono text-zinc-400 mt-0.5 block">
@@ -691,13 +701,13 @@ export default function AIWorkspacePage() {
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <>
-                  <span>{t('ai.send', 'Send')}</span>
+                  <span className="hidden sm:inline">{t('ai.send', 'Send')}</span>
                   <Send className="w-3.5 h-3.5" />
                 </>
               )}
             </button>
           </form>
-          <p className="text-[10px] text-zinc-400 text-center mt-2">
+          <p className="text-[10px] text-zinc-400 text-center mt-2 hidden sm:block">
             Press Enter to send · Shift + Enter for new line
           </p>
         </div>

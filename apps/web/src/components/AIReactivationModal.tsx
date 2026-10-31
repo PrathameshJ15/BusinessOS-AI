@@ -398,7 +398,7 @@ export function AIReactivationModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl text-zinc-100">
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/60">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/60">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
               <Bot className="w-5 h-5" />
@@ -426,7 +426,7 @@ export function AIReactivationModal({
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* STEP 1: CONFIGURE & PREVIEW */}
           {step === 'CONFIGURE' && (
             <div className="space-y-6">
@@ -861,7 +861,7 @@ export function AIReactivationModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-3.5 border-t border-zinc-800 flex items-center justify-between bg-zinc-950 text-xs text-zinc-400">
+        <div className="px-4 sm:px-6 py-3 border-t border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-zinc-950 text-xs text-zinc-400">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
             <span>Saarthi AI Predictive Campaign Engine</span>

@@ -163,7 +163,7 @@ export default function CustomerWorkspacePage() {
   return (
     <div className="space-y-6 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">
             {t('customers.crmTitle', 'Customer Relationship CRM')}
@@ -177,7 +177,7 @@ export default function CustomerWorkspacePage() {
           {canAccess('customers:write') && (
             <button
               onClick={() => setIsAddCustomerOpen(true)}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
+              className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
               <span>{t('customers.addCustomer', 'Add New Client')}</span>
@@ -212,7 +212,7 @@ export default function CustomerWorkspacePage() {
         </div>
         <button
           onClick={() => setIsReactivationModalOpen(true)}
-          className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all shadow shrink-0 flex items-center gap-1.5 group"
+          className="w-full sm:w-auto px-3.5 py-2 sm:py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-all shadow shrink-0 flex items-center justify-center gap-1.5 group"
         >
           <Bot className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
           <span>{lastSimulation ? 'Rerun AI Reactivation' : 'Launch AI Reactivation'}</span>
@@ -225,14 +225,14 @@ export default function CustomerWorkspacePage() {
         <div className="lg:col-span-2 space-y-4">
           {/* Workspace Filter & Search Controls */}
           <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               {/* Navigation Segment Control */}
-              <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700">
+              <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-x-auto no-scrollbar max-w-full">
                 {(['all', 'customers', 'leads', 'pipeline'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveNav(tab)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all capitalize ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all capitalize shrink-0 ${
                       activeNav === tab
                         ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs'
                         : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
@@ -255,7 +255,7 @@ export default function CustomerWorkspacePage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs font-semibold p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none"
+                  className="w-full sm:w-auto bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs font-semibold p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none"
                 >
                   <option value="ltv">{t('customers.sortByLtv', 'Sort by Lifetime Value')}</option>
                   <option value="name">{t('customers.sortByName', 'Sort by Client Name')}</option>
@@ -279,7 +279,7 @@ export default function CustomerWorkspacePage() {
 
           {/* Bulk Selection Banner */}
           {selectedCustomerIds.length > 0 && (
-            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between text-xs text-emerald-900 dark:text-emerald-300">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-emerald-900 dark:text-emerald-300">
               <span className="font-bold">{selectedCustomerIds.length} Clients Selected</span>
               <button
                 onClick={() => {
@@ -357,8 +357,8 @@ export default function CustomerWorkspacePage() {
           ) : (
             /* Table Listing View */
             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-xs min-w-[640px]">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-400 uppercase bg-zinc-50 dark:bg-zinc-800/50">
                       <th className="py-3 px-4 w-10">
@@ -412,12 +412,99 @@ export default function CustomerWorkspacePage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Contact Cards */}
+              <div className="md:hidden divide-y divide-zinc-100 dark:divide-zinc-800">
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-between text-[11px] text-zinc-500 font-semibold">
+                  <span>{filteredCustomers.length} Contacts</span>
+                  <button onClick={handleSelectAll} className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                    {selectedCustomerIds.length === filteredCustomers.length && filteredCustomers.length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Square className="w-4 h-4 text-zinc-400" />
+                    )}
+                    <span>Select All</span>
+                  </button>
+                </div>
+                {filteredCustomers.map((c) => {
+                  const isSelected = selectedCustomerIds.includes(c.id);
+                  return (
+                    <div
+                      key={c.id}
+                      className={`p-3.5 space-y-2.5 transition-colors ${isSelected ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <button onClick={() => toggleSelectCustomer(c.id)} className="p-0.5 shrink-0">
+                            {isSelected ? <CheckSquare className="w-4 h-4 text-emerald-600" /> : <Square className="w-4 h-4 text-zinc-400" />}
+                          </button>
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
+                            {c.name.charAt(0)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-xs text-zinc-900 dark:text-white truncate">{c.name}</span>
+                              {c.tags.includes('VIP') && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[9px] font-bold shrink-0">VIP</span>}
+                            </div>
+                            <span className="text-[11px] text-zinc-400 block font-mono truncate">{c.phone}</span>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                          {c.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-zinc-100 dark:border-zinc-800/80">
+                        <div>
+                          <span className="text-[10px] text-zinc-400 block uppercase font-mono">Lifetime Value</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400 font-display">₹{c.lifetimeValue.toLocaleString()}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-zinc-400 block uppercase font-mono">Visits</span>
+                          <span className="font-semibold text-zinc-700 dark:text-zinc-300">{c.totalBookings}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          onClick={() => setActiveProfileId(c.id)}
+                          className="flex-1 py-1.5 px-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs font-bold text-center"
+                        >
+                          View 360° Profile
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setWhatsAppModalData({ name: c.name, phone: c.phone });
+                            setIsWhatsAppModalOpen(true);
+                          }}
+                          className="p-2 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 rounded-lg text-xs font-bold shrink-0"
+                          title="WhatsApp"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentCustomerData({ name: c.name, phone: c.phone, amount: 2500 });
+                            setIsPaymentModalOpen(true);
+                          }}
+                          className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs font-bold shrink-0"
+                          title="Payment Link"
+                        >
+                          <CreditCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Right Column: 360° Customer Profile Inspector Drawer */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6 flex flex-col justify-between">
+        {/* Right Column: 360° Customer Profile Inspector Drawer (Desktop) */}
+        <div className="hidden lg:flex bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6 flex-col justify-between">
           {selectedProfileCustomer ? (
             <div className="space-y-6">
               {/* Profile Header */}
@@ -560,10 +647,145 @@ export default function CustomerWorkspacePage() {
         </div>
       </div>
 
+            {/* Mobile 360° Customer Profile Bottom Sheet */}
+      {selectedProfileCustomer && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setActiveProfileId(null)} />
+          <div className="relative z-10 w-full max-h-[85vh] overflow-y-auto bg-white dark:bg-zinc-900 rounded-t-3xl border-t border-zinc-200 dark:border-zinc-800 shadow-2xl p-4 sm:p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] space-y-4 sm:space-y-5 animate-in slide-in-from-bottom duration-200 text-zinc-900 dark:text-zinc-100">
+            {/* Profile Header */}
+            <div className="flex items-start justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white font-bold text-base flex items-center justify-center shadow-md">
+                  {selectedProfileCustomer.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-white">{selectedProfileCustomer.name}</h3>
+                  <p className="text-xs text-zinc-400">{selectedProfileCustomer.email}</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-mono font-semibold">{selectedProfileCustomer.phone}</p>
+                </div>
+              </div>
+              <button onClick={() => setActiveProfileId(null)} className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Profile Quick Actions */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => addBooking({ customerId: selectedProfileCustomer.id, customerName: selectedProfileCustomer.name, customerPhone: selectedProfileCustomer.phone })}
+                className="p-2.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+              >
+                <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Book Slot</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentCustomerData({
+                    name: selectedProfileCustomer.name,
+                    phone: selectedProfileCustomer.phone,
+                    amount: 2500,
+                  });
+                  setIsPaymentModalOpen(true);
+                }}
+                className="p-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer hover:border-emerald-500/50"
+              >
+                <CreditCard className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>Payment</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setWhatsAppModalData({
+                    name: selectedProfileCustomer.name,
+                    phone: selectedProfileCustomer.phone,
+                  });
+                  setIsWhatsAppModalOpen(true);
+                }}
+                className="p-2.5 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>WhatsApp</span>
+              </button>
+            </div>
+
+            {/* Tabs for Drawer */}
+            <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-x-auto no-scrollbar text-xs">
+              {(['overview', 'activity', 'notes', 'invoices'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setProfileTab(tab)}
+                  className={`px-3 py-1 rounded-lg font-bold capitalize shrink-0 transition-all ${
+                    profileTab === tab ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs' : 'text-zinc-500 dark:text-zinc-400'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Drawer Content Views */}
+            {profileTab === 'overview' && (
+              <div className="space-y-4 text-xs">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
+                    <span className="text-[10px] text-zinc-400 uppercase font-mono">Lifetime Value</span>
+                    <p className="text-base font-bold text-emerald-600 dark:text-emerald-400 font-display mt-0.5">₹{selectedProfileCustomer.lifetimeValue.toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
+                    <span className="text-[10px] text-zinc-400 uppercase font-mono">Total Bookings</span>
+                    <p className="text-base font-bold text-zinc-900 dark:text-white mt-0.5">{selectedProfileCustomer.totalBookings} Completed</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {profileTab === 'notes' && (
+              <div className="space-y-3">
+                <form onSubmit={handleAddNoteSubmit} className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Add staff note to client profile..."
+                    value={newNoteInput}
+                    onChange={(e) => setNewNoteInput(e.target.value)}
+                    className="w-full text-xs p-2.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                  <button type="submit" className="w-full py-2 bg-zinc-900 dark:bg-zinc-800 text-white rounded-lg text-xs font-bold">
+                    Save Note
+                  </button>
+                </form>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {customerNotes.map((n) => (
+                    <div key={n.id} className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-xs">
+                      <p className="text-zinc-800 dark:text-zinc-200 font-medium">{n.content}</p>
+                      <span className="text-[9px] text-zinc-400 font-mono mt-1 block">By {n.authorName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {profileTab === 'activity' && (
+              <div className="space-y-2 text-xs max-h-60 overflow-y-auto">
+                {customerActivities.map((act) => (
+                  <div key={act.id} className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 space-y-0.5">
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{act.title}</span>
+                    <p className="text-zinc-600 dark:text-zinc-400 text-[11px]">{act.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Add Client Modal */}
       {isAddCustomerOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h3 className="text-base font-bold text-zinc-900 dark:text-white">Register New Client Record</h3>
               <button onClick={() => setIsAddCustomerOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-white">
@@ -621,18 +843,18 @@ export default function CustomerWorkspacePage() {
                 </select>
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-3">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsAddCustomerOpen(false)}
-                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl"
+                  className="w-full sm:w-auto px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingCustomer}
-                  className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl shadow flex items-center gap-1.5"
+                  className="w-full sm:w-auto px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl shadow flex items-center justify-center gap-1.5"
                 >
                   {isSubmittingCustomer ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   <span>{isSubmittingCustomer ? 'Saving Record...' : 'Save Record to Neon DB'}</span>

@@ -68,35 +68,48 @@ body {
 
 .text-hero {
   font-family: var(--font-display), system-ui, sans-serif;
-  font-size: clamp(2.75rem, 5vw + 1rem, 4.5rem);
-  line-height: 1.05;
+  font-size: clamp(2rem, 5.5vw + 0.5rem, 4.5rem);
+  line-height: 1.08;
   letter-spacing: -0.035em;
   font-weight: 700;
 }
 
 .text-major {
   font-family: var(--font-display), system-ui, sans-serif;
-  font-size: clamp(2rem, 3.5vw + 1rem, 3.5rem);
-  line-height: 1.08;
+  font-size: clamp(1.65rem, 4vw + 0.5rem, 3.5rem);
+  line-height: 1.1;
   letter-spacing: -0.03em;
   font-weight: 700;
 }
 
 .text-section {
   font-family: var(--font-display), system-ui, sans-serif;
-  font-size: clamp(1.5rem, 2.2vw + 0.75rem, 2.5rem);
-  line-height: 1.12;
+  font-size: clamp(1.25rem, 2.5vw + 0.5rem, 2.5rem);
+  line-height: 1.15;
   letter-spacing: -0.025em;
   font-weight: 600;
 }
 
 .text-metric {
   font-family: var(--font-display), system-ui, sans-serif;
-  font-size: clamp(1.75rem, 3vw + 0.5rem, 3rem);
+  font-size: clamp(1.5rem, 3vw + 0.5rem, 3rem);
   line-height: 1.0;
   letter-spacing: -0.03em;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* Touch & Mobile UX Enhancements */
+button, a, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe Area Inset Support for iPhone Notch / Dynamic Island / Navigation Bars */
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-pt {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Crisp Grid Background Pattern */
@@ -126,6 +139,15 @@ body {
 }
 .dark ::-webkit-scrollbar-thumb {
   background: #3f3f46;
+}
+
+/* Hide scrollbar for horizontal tabs & carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @keyframes flowPulse {

@@ -11,9 +11,9 @@ const caseStudies = [
 
 export const CaseStudies: React.FC = () => {
   return (
-    <section id="case-studies" className="py-24 px-6 bg-zinc-100/60 dark:bg-zinc-900/40">
+    <section id="case-studies" className="py-16 sm:py-24 px-4 sm:px-6 bg-zinc-100/60 dark:bg-zinc-900/40">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16 space-y-4">
           <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
             Case Studies
           </span>
@@ -32,7 +32,7 @@ export const CaseStudies: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.1 }}
-              className="group p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all shadow-sm hover:shadow-md"
+              className="group p-4 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 transition-all shadow-sm hover:shadow-md"
             >
               <div className="flex items-start justify-between mb-5">
                 <div>

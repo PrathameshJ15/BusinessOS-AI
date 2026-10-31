@@ -55,9 +55,10 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         }`}
       >
         <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-        <span className="font-medium">{currentMeta.nativeName}</span>
+        <span className="font-medium hidden sm:inline">{currentMeta.nativeName}</span>
+        <span className="font-medium sm:hidden text-[11px] uppercase tracking-wide">{currentMeta.code}</span>
         <ChevronDown
-          className={`w-3 h-3 text-zinc-400 transition-transform duration-200 ${
+          className={`w-3 h-3 text-zinc-400 transition-transform duration-200 shrink-0 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />

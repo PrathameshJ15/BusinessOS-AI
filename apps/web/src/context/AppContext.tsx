@@ -152,6 +152,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       // 1. Fetch User Context from database API
       const userRes = await fetch('/api/user');
+
+      if (userRes.status === 401) {
+        setIsLoading(false);
+        if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
+          window.location.replace(`/login?error=SessionExpired&callbackUrl=${encodeURIComponent(window.location.pathname)}`);
+        }
+        return;
+      }
+
       let currentOrgName = mockOrganization.name;
       if (userRes.ok) {
         const u = await userRes.json();

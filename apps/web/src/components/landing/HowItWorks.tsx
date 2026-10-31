@@ -16,9 +16,9 @@ export const HowItWorks: React.FC = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 px-6 bg-zinc-100/60 dark:bg-zinc-900/40">
+    <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 bg-zinc-100/60 dark:bg-zinc-900/40">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16 space-y-4">
           <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
             {t('landing.howItWorksBadge', 'Process')}
           </span>
@@ -47,7 +47,7 @@ export const HowItWorks: React.FC = () => {
                   <Icon className="w-5 h-5 text-zinc-900 dark:text-white mt-1.5" />
                 </div>
                 <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-2">{step.title}</h3>
-                <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-[200px]">{step.description}</p>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xs md:max-w-[200px]">{step.description}</p>
               </motion.div>
             );
           })}

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle2, Zap, ArrowDown } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
@@ -9,9 +10,11 @@ import { Logo } from '@/components/Logo';
 
 export const Hero: React.FC = () => {
   const { t } = useApp();
+  const { status } = useSession();
+  const isAuthenticated = status === 'authenticated';
 
   return (
-    <section className="pt-32 pb-20 sm:pt-40 sm:pb-28 px-6 relative">
+    <section className="pt-28 pb-16 sm:pt-40 sm:pb-28 px-4 sm:px-6 relative">
       <div className="max-w-5xl mx-auto text-center space-y-8">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
@@ -35,12 +38,12 @@ export const Hero: React.FC = () => {
           {t('landing.heroDesc', 'One intelligent workspace that understands your business, takes action, and helps you grow — from customer management to marketing automation.')}
         </motion.p>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-          <Link href="/dashboard" className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all flex items-center gap-2 shadow-md hover:shadow-lg">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2 w-full max-w-xs sm:max-w-none mx-auto">
+          <Link href="/login?mode=signup" className="w-full sm:w-auto justify-center px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-xl transition-all flex items-center gap-2 shadow-md hover:shadow-lg">
             <span>{t('landing.startWithSaarthi', 'Start with Saarthi')}</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
-          <a href="#how-it-works" className="px-6 py-3.5 bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 font-medium text-sm rounded-xl transition-all">
+          <a href="#how-it-works" className="w-full sm:w-auto text-center px-6 py-3.5 bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 font-medium text-sm rounded-xl transition-all">
             {t('landing.seeHowItWorks', 'See how it works')}
           </a>
         </motion.div>
@@ -55,7 +58,7 @@ export const Hero: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }} className="pt-10 max-w-3xl mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-0">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-48 p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm text-left">
+              <div className="w-full max-w-[240px] sm:w-48 p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm text-left">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 rounded-md bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center"><span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">1</span></div>
                   <span className="text-xs font-semibold text-zinc-900 dark:text-white">{t('landing.yourBusiness', 'Your Business')}</span>
@@ -68,7 +71,7 @@ export const Hero: React.FC = () => {
             <div className="sm:hidden flex items-center"><ArrowDown className="w-3.5 h-3.5 text-zinc-400" /></div>
 
             <div className="flex flex-col items-center gap-2">
-              <div className="w-48 p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 shadow-sm text-left">
+              <div className="w-full max-w-[240px] sm:w-48 p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 shadow-sm text-left">
                 <div className="flex items-center gap-2 mb-2">
                   <Logo size={20} />
                   <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{t('landing.saarthiAi', 'Saarthi AI')}</span>
@@ -81,7 +84,7 @@ export const Hero: React.FC = () => {
             <div className="sm:hidden flex items-center"><ArrowDown className="w-3.5 h-3.5 text-zinc-400" /></div>
 
             <div className="flex flex-col items-center gap-2">
-              <div className="w-48 p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-900/50 shadow-sm text-left">
+              <div className="w-full max-w-[240px] sm:w-48 p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-900/50 shadow-sm text-left">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-6 h-6 rounded-md bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /></div>
                   <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{t('landing.automated', 'Automated')}</span>

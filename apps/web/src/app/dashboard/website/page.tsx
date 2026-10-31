@@ -323,12 +323,12 @@ export default function AIWebsiteBuilderPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
           <a
             href={publicWebsiteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-semibold text-xs rounded-xl transition-all border border-zinc-200 dark:border-zinc-700 flex items-center gap-1.5"
+            className="flex-1 sm:flex-initial justify-center px-3.5 py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-semibold text-xs rounded-xl transition-all border border-zinc-200 dark:border-zinc-700 flex items-center gap-1.5"
             title="Open published website in a new tab"
           >
             <ExternalLink className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -338,7 +338,7 @@ export default function AIWebsiteBuilderPage() {
           {canAccess('website:write') && (
             <button
               onClick={() => setIsAiGeneratorOpen(true)}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+              className="flex-1 sm:flex-initial justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />
               <span>{t('website.generateWithAi', 'Generate Site with AI')}</span>
@@ -348,7 +348,7 @@ export default function AIWebsiteBuilderPage() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-wrap gap-2">
+      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar max-w-full">
         {[
           { id: 'overview', label: 'Funnel Overview & Leads', icon: Globe },
           { id: 'editor', label: 'Visual Block Canvas', icon: Edit3 },
@@ -361,7 +361,7 @@ export default function AIWebsiteBuilderPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+              className={`shrink-0 flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? 'bg-zinc-900 dark:bg-zinc-800 text-white shadow-sm'
                   : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
@@ -413,7 +413,7 @@ export default function AIWebsiteBuilderPage() {
             </div>
 
             {/* Funnel Metrics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
               <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
                 <span className="text-[10px] text-zinc-400 uppercase font-mono">Monthly Visitors</span>
                 <p className="text-2xl font-bold text-zinc-900 dark:text-white mt-1">1,420</p>
@@ -465,8 +465,45 @@ export default function AIWebsiteBuilderPage() {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            {/* Mobile Lead Cards (<md) */}
+            <div className="md:hidden space-y-2.5">
+              {MOCK_WEBSITE_LEADS.map((lead) => (
+                <div key={lead.id} className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+                        {lead.name[0]}
+                      </span>
+                      <div>
+                        <p className="font-bold text-xs text-zinc-900 dark:text-white leading-tight">{lead.name}</p>
+                        <p className="text-[10px] font-mono text-zinc-500">{lead.phone}</p>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        lead.status === 'CONVERTED'
+                          ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800'
+                          : lead.status === 'CONTACTED'
+                          ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800'
+                          : 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-800'
+                      }`}
+                    >
+                      {lead.status === 'CONVERTED' ? 'Converted' : lead.status === 'CONTACTED' ? 'Contacted' : 'New'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] pt-1 border-t border-zinc-200/60 dark:border-zinc-800">
+                    <span className="text-zinc-700 dark:text-zinc-300 font-medium truncate max-w-[180px]">{lead.service}</span>
+                    <span className="text-zinc-400 font-mono text-[10px] shrink-0">{lead.timeAgo}</span>
+                  </div>
+                  <div className="text-[10px] text-zinc-500 font-mono">Channel: {lead.source}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Lead Table (>=md) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs min-w-[640px]">
                 <thead>
                   <tr className="border-b border-zinc-100 dark:border-zinc-800 text-[10px] font-mono uppercase text-zinc-400">
                     <th className="py-2.5 px-3">Client Name</th>
@@ -519,7 +556,7 @@ export default function AIWebsiteBuilderPage() {
       {/* 2. VISUAL CANVAS & BLOCK EDITOR TAB */}
       {activeTab === 'editor' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-zinc-100 dark:bg-zinc-950 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4 min-h-[500px]">
+          <div className="lg:col-span-2 bg-zinc-100 dark:bg-zinc-950 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4 min-h-[500px]">
             <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-zinc-900 dark:text-white">Visual Storefront Canvas</span>
@@ -918,8 +955,8 @@ export default function AIWebsiteBuilderPage() {
 
       {/* AI GENERATOR MODAL WIZARD */}
       {isAiGeneratorOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full p-6 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -970,18 +1007,18 @@ export default function AIWebsiteBuilderPage() {
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-3">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row items-center justify-end gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAiGeneratorOpen(false)}
-                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl cursor-pointer text-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isGenerating}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto px-5 py-2.5 sm:py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isGenerating ? 'Building Site...' : 'Generate AI Website'}
                 </button>

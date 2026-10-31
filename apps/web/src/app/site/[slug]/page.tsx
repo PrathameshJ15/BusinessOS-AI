@@ -230,10 +230,10 @@ export default function PublicWebsitePage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-600 selection:text-white">
       {/* Top Banner Navigation */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-6 py-4">
+      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
-            <span className="text-lg font-bold font-display text-white tracking-tight flex items-center gap-2">
+            <span className="text-base sm:text-lg font-bold font-display text-white tracking-tight flex items-center gap-2 truncate max-w-[190px] sm:max-w-none">
               <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
               {site.businessName}
             </span>
@@ -268,7 +268,7 @@ export default function PublicWebsitePage() {
             )}
             <a
               href="#book"
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-all"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] sm:text-xs rounded-xl shadow transition-all shrink-0"
             >
               Book Appointment
             </a>
@@ -277,7 +277,7 @@ export default function PublicWebsitePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative py-24 px-6 overflow-hidden border-b border-slate-800">
+      <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden border-b border-slate-800">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/20 via-transparent to-slate-950 pointer-events-none" />
         <div className="max-w-4xl mx-auto text-center relative z-10 space-y-6">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-400">
@@ -293,10 +293,10 @@ export default function PublicWebsitePage() {
             {heroBlock?.content?.subheading || heroBlock?.subtitle || 'Premier salon, spa, and aesthetics therapies designed for revitalization.'}
           </p>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 w-full max-w-xs sm:max-w-none mx-auto">
             <a
               href="#book"
-              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+              className="w-full sm:w-auto justify-center px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
             >
               <Calendar className="w-4 h-4" />
               <span>{heroBlock?.content?.ctaText || 'Reserve Your Visit'}</span>
@@ -313,7 +313,7 @@ export default function PublicWebsitePage() {
                     body: JSON.stringify({ eventType: 'WHATSAPP_CLICK', referrerHost: typeof window !== 'undefined' ? window.location.hostname : '' }),
                   }).catch(() => {});
                 }}
-                className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto justify-center px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 font-bold text-sm rounded-xl transition-all flex items-center gap-2"
               >
                 <MessageSquare className="w-4 h-4 text-[#25D366]" />
                 <span>{site.whatsappSettings.ctaLabel || 'Chat on WhatsApp'}</span>
@@ -321,7 +321,7 @@ export default function PublicWebsitePage() {
             )}
             <a
               href="#services"
-              className="px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-sm rounded-xl transition-all"
+              className="w-full sm:w-auto text-center px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-sm rounded-xl transition-all"
             >
               Explore Services
             </a>
@@ -330,7 +330,7 @@ export default function PublicWebsitePage() {
       </section>
 
       {/* Services Catalog Section */}
-      <section id="services" className="py-20 px-6 max-w-6xl mx-auto space-y-12">
+      <section id="services" className="py-14 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto space-y-8 sm:space-y-12">
         <div className="text-center space-y-2">
           <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">Our Offerings</span>
           <h2 className="text-2xl sm:text-3xl font-bold font-display text-white">
@@ -401,7 +401,7 @@ export default function PublicWebsitePage() {
       </section>
 
       {/* Live Booking & Lead Capture Section */}
-      <section id="book" className="py-20 px-6 max-w-3xl mx-auto space-y-8">
+      <section id="book" className="py-14 sm:py-20 px-4 sm:px-6 max-w-3xl mx-auto space-y-6 sm:space-y-8">
         <div className="text-center space-y-2">
           <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">Direct Inquiries</span>
           <h2 className="text-2xl sm:text-3xl font-bold font-display text-white">
@@ -412,7 +412,7 @@ export default function PublicWebsitePage() {
           </p>
         </div>
 
-        <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl">
+        <div className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl">
           {submitSuccess ? (
             <div className="p-6 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-center space-y-3">
               <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
@@ -511,7 +511,7 @@ export default function PublicWebsitePage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-slate-800 bg-slate-950 text-slate-400 text-xs">
+      <footer className="py-8 sm:py-10 px-4 sm:px-6 border-t border-slate-800 bg-slate-950 text-slate-400 text-xs">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-white">{site.businessName}</span>
@@ -527,7 +527,7 @@ export default function PublicWebsitePage() {
       </footer>
       {/* Floating WhatsApp Action */}
       {site.whatsappSettings && (
-        <aside aria-label="WhatsApp Contact" className="fixed bottom-6 right-6 z-50">
+        <aside aria-label="WhatsApp Contact" className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 sm:bottom-6 sm:right-6 z-50">
           <a
             href={buildWhatsAppClickToChat(site.whatsappSettings.phoneNumber, site.whatsappSettings.visitorMessage)}
             target="_blank"

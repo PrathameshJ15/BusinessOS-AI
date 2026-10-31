@@ -379,7 +379,7 @@ export default function MarketingWorkspacePage() {
   return (
     <div className="space-y-6 text-zinc-900 dark:text-zinc-100 font-sans">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold font-display tracking-tight text-zinc-900 dark:text-white">
             {t('marketing.marketingTitle', 'Marketing & Growth Automation')}
@@ -393,7 +393,7 @@ export default function MarketingWorkspacePage() {
           {canAccess('marketing:write') ? (
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2"
+              className="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" />
               <span>{t('marketing.createCampaignBtn', 'Create Campaign')}</span>
@@ -407,7 +407,7 @@ export default function MarketingWorkspacePage() {
       </div>
 
       {/* Tabs Navigation Bar */}
-      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-wrap gap-2">
+      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-2 overflow-x-auto no-scrollbar">
         {[
           { id: 'overview', label: 'Performance Overview', icon: BarChart3 },
           { id: 'campaigns', label: 'Campaign Broadcasts', icon: Megaphone },
@@ -420,7 +420,7 @@ export default function MarketingWorkspacePage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all shrink-0 ${
                 activeTab === tab.id
                   ? 'bg-zinc-900 dark:bg-zinc-800 text-white shadow-sm'
                   : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
@@ -497,8 +497,45 @@ export default function MarketingWorkspacePage() {
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            {/* Mobile Broadcast Cards (<md) */}
+            <div className="md:hidden space-y-2.5">
+              {campaigns.slice(0, 4).map((c) => (
+                <div key={c.id} className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="font-bold text-xs text-zinc-900 dark:text-white">{c.name}</h4>
+                      <p className="text-[10px] text-zinc-400 font-mono mt-0.5">Audience: {c.targetAudience.replace(/_/g, ' ')}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                        {c.channel}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+                        {c.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 pt-1 border-t border-zinc-200/60 dark:border-zinc-800 text-[10px] font-mono text-center">
+                    <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700/60">
+                      <span className="text-zinc-400 block text-[9px]">Delivered</span>
+                      <span className="font-bold text-zinc-800 dark:text-zinc-200">{c.deliveredCount}</span>
+                    </div>
+                    <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700/60">
+                      <span className="text-zinc-400 block text-[9px]">Open Rate</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">{c.deliveredCount > 0 ? `${Math.round((c.openedCount / c.deliveredCount) * 100)}%` : '0%'}</span>
+                    </div>
+                    <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700/60">
+                      <span className="text-zinc-400 block text-[9px]">Click Rate</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">{c.deliveredCount > 0 ? `${Math.round((c.clickedCount / c.deliveredCount) * 100)}%` : '0%'}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Broadcast Table (>=md) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs min-w-[640px]">
                 <thead>
                   <tr className="border-b border-zinc-100 dark:border-zinc-800 text-[10px] font-mono uppercase text-zinc-400">
                     <th className="py-2.5 px-3">Campaign Name</th>
@@ -746,7 +783,7 @@ export default function MarketingWorkspacePage() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 shrink-0">
                         <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-center mr-1">
                           <span className="text-[10px] text-zinc-400 block font-mono">CLICKS</span>
                           <span className="text-xs font-bold text-zinc-900 dark:text-white font-mono">
@@ -952,7 +989,7 @@ export default function MarketingWorkspacePage() {
                       key={i}
                       className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/40 transition-all space-y-2 group"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
@@ -1296,18 +1333,18 @@ export default function MarketingWorkspacePage() {
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-3 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-zinc-100 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setIsCreateLinkModalOpen(false)}
-                  className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl"
+                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold rounded-xl text-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingLink}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5 transition-all"
+                  className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5 transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{isSubmittingLink ? 'Creating...' : 'Create Smart Link'}</span>

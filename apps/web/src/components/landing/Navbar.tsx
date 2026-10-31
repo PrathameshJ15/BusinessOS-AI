@@ -35,7 +35,7 @@ export const Navbar: React.FC = () => {
             : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Logo href="/" size={34} showText textVariant="landing" priority />
 
           <nav className="hidden lg:flex items-center gap-8">
@@ -50,8 +50,10 @@ export const Navbar: React.FC = () => {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <LanguageSwitcher variant="landing" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:block">
+              <LanguageSwitcher variant="landing" />
+            </div>
 
             <button
               onClick={toggleTheme}
@@ -62,17 +64,17 @@ export const Navbar: React.FC = () => {
             </button>
 
             <Link
-              href="/login"
-              className="text-[13px] font-semibold text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 px-3 py-1.5 rounded-lg transition-colors"
+              href="/login?mode=signin"
+              className="hidden sm:block text-[13px] font-semibold text-zinc-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 px-3 py-1.5 rounded-lg transition-colors"
             >
               {t('nav.signIn', 'Sign In')}
             </Link>
 
             <Link
-              href="/dashboard"
+              href="/login?mode=signup"
               className="hidden sm:flex px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[13px] rounded-lg transition-all items-center gap-2 shadow-sm"
             >
-              <span>{t('nav.dashboard', 'Dashboard')}</span>
+              <span>{t('nav.getStarted', 'Get Started')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
 
@@ -88,7 +90,7 @@ export const Navbar: React.FC = () => {
       </header>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 bg-white dark:bg-[#09090b] pt-20 px-6 lg:hidden">
+        <div className="fixed inset-0 z-40 bg-white dark:bg-[#09090b] pt-20 px-4 sm:px-6 overflow-y-auto pb-12 lg:hidden">
           <nav className="flex flex-col gap-1">
             <div className="pb-3 mb-2 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
               <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t('nav.language', 'Language')}</span>
@@ -106,18 +108,18 @@ export const Navbar: React.FC = () => {
             ))}
             <div className="pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
               <Link
-                href="/login"
+                href="/login?mode=signin"
                 onClick={() => setMobileOpen(false)}
                 className="w-full flex px-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold text-sm rounded-lg transition-all items-center justify-center gap-2"
               >
-                <span>{t('nav.signInWithGoogle', 'Sign In with Google')}</span>
+                <span>{t('nav.signIn', 'Sign In')}</span>
               </Link>
               <Link
-                href="/dashboard"
+                href="/login?mode=signup"
                 onClick={() => setMobileOpen(false)}
                 className="w-full flex px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-all items-center justify-center gap-2"
               >
-                <span>{t('nav.dashboard', 'Dashboard')}</span>
+                <span>{t('nav.getStarted', 'Get Started')}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

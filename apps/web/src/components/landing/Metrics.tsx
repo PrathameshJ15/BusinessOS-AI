@@ -15,9 +15,9 @@ export const Metrics: React.FC = () => {
   ];
 
   return (
-    <section id="results" className="py-24 px-6">
+    <section id="results" className="py-16 sm:py-24 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16 space-y-4">
           <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
             {t('landing.resultsBadge', 'Results')}
           </span>
@@ -25,7 +25,7 @@ export const Metrics: React.FC = () => {
             {t('landing.resultsTitle', 'Numbers that speak')}
           </h2>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
           {metrics.map((metric, idx) => (
             <motion.div
               key={metric.label}
@@ -33,7 +33,7 @@ export const Metrics: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.08 }}
-              className="text-center p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm"
+              className="text-center p-3.5 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm"
             >
               <p className="text-metric text-emerald-600 dark:text-emerald-400 font-extrabold">
                 {metric.value}

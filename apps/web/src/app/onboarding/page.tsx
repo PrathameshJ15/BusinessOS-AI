@@ -157,7 +157,7 @@ export default function BusinessOnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans grid-pattern flex flex-col justify-between p-6">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans grid-pattern flex flex-col justify-between p-3.5 sm:p-6">
       {/* Brand Header */}
       <div className="max-w-4xl mx-auto w-full flex items-center justify-between py-4 border-b border-zinc-800/80">
         <Logo
@@ -176,7 +176,7 @@ export default function BusinessOnboardingPage() {
       </div>
 
       {/* Main Form Container */}
-      <div className="max-w-2xl mx-auto w-full my-8 bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-10 shadow-2xl space-y-6">
+      <div className="max-w-2xl mx-auto w-full my-4 sm:my-8 bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 shadow-2xl space-y-5 sm:space-y-6">
         {/* Step Indicator */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
           <div>
@@ -214,7 +214,7 @@ export default function BusinessOnboardingPage() {
         {/* ─── Step 1: Basic Information ──────────────────────────────────── */}
         {step === 1 && (
           <form onSubmit={handleNextStep} className="space-y-4 text-xs">
-            <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-xl flex items-center justify-between gap-2">
+            <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span className="text-[11px] text-zinc-300">Fast-track with verified business preset:</span>
@@ -306,7 +306,7 @@ export default function BusinessOnboardingPage() {
             <div className="pt-4 flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95"
+                className="w-full sm:w-auto justify-center px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95"
               >
                 <span>Continue</span>
                 <ArrowRight className="w-4 h-4" />
@@ -388,11 +388,11 @@ export default function BusinessOnboardingPage() {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-between">
+            <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl transition-colors flex items-center gap-1.5"
+                className="w-full sm:w-auto justify-center px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl transition-colors flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -400,7 +400,7 @@ export default function BusinessOnboardingPage() {
 
               <button
                 type="submit"
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95"
+                className="w-full sm:w-auto justify-center px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95"
               >
                 <span>Continue</span>
                 <ArrowRight className="w-4 h-4" />
@@ -466,12 +466,12 @@ export default function BusinessOnboardingPage() {
               />
             </div>
 
-            <div className="pt-4 flex items-center justify-between border-t border-zinc-800">
+            <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-zinc-800">
               <button
                 type="button"
                 onClick={() => setStep(2)}
                 disabled={isSubmitting}
-                className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl transition-colors flex items-center gap-1.5"
+                className="w-full sm:w-auto justify-center px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl transition-colors flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -480,7 +480,7 @@ export default function BusinessOnboardingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                className="w-full sm:w-auto justify-center px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

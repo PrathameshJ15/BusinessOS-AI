@@ -17,6 +17,19 @@ export interface ServerUser {
   onboardingCompleted?: boolean;
 }
 
+export class UnauthorizedError extends Error {
+  statusCode: number;
+  constructor(message = 'Unauthorized. Authentication required before accessing this resource.') {
+    super(message);
+    this.name = 'UnauthorizedError';
+    this.statusCode = 401;
+  }
+}
+
+export interface GetServerUserOptions {
+  requireAuth?: boolean;
+}
+
 const DEFAULT_EMAIL = 'prathamesh@test.com';
 
 /**
@@ -26,7 +39,10 @@ const DEFAULT_EMAIL = 'prathamesh@test.com';
  * 2. Passed email override
  * 3. Fallback environment / default user
  */
-export async function getServerUser(emailOverride?: string): Promise<ServerUser> {
+export async function getServerUser(
+  emailOverride?: string,
+  options?: GetServerUserOptions
+): Promise<ServerUser> {
   let targetEmail = emailOverride;
   let sessionUser: any = null;
 
@@ -42,7 +58,19 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
     }
   }
 
-  targetEmail = targetEmail || process.env.SAARTHI_ACTIVE_USER_EMAIL || DEFAULT_EMAIL;
+  // Enforce strict authentication when requested
+  if (!targetEmail && options?.requireAuth) {
+    throw new UnauthorizedError('Unauthorized. Valid authentication session or credentials required.');
+  }
+
+  targetEmail = targetEmail || process.env.SAARTHI_ACTIVE_USER_EMAIL;
+
+  if (!targetEmail) {
+    if (options?.requireAuth) {
+      throw new UnauthorizedError('Unauthorized. Valid authentication session or credentials required.');
+    }
+    targetEmail = DEFAULT_EMAIL;
+  }
 
   try {
     let user = await prisma.user.findUnique({
@@ -191,3 +219,28 @@ export async function getServerUser(emailOverride?: string): Promise<ServerUser>
     };
   }
 }
+
+/**
+ * Server-side helper that strictly enforces authentication.
+ * Throws UnauthorizedError (401) if no valid session or user email is found.
+ */
+export async function getAuthenticatedServerUser(
+  request?: { headers?: Headers | { get(name: string): string | null }; cookies?: any }
+): Promise<ServerUser> {
+  let emailOverride: string | undefined;
+
+  if (request?.headers) {
+    emailOverride = request.headers.get('x-saarthi-user-email') || undefined;
+  }
+
+  if (!emailOverride && request?.cookies) {
+    if (typeof request.cookies.get === 'function') {
+      emailOverride = request.cookies.get('saarthi_user_email')?.value;
+    } else if (typeof request.cookies === 'object' && 'saarthi_user_email' in request.cookies) {
+      emailOverride = request.cookies['saarthi_user_email'];
+    }
+  }
+
+  return getServerUser(emailOverride, { requireAuth: true });
+}
+

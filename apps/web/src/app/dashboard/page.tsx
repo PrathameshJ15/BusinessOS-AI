@@ -173,153 +173,153 @@ export default function BusinessDashboard() {
   const recentActivities = dbStats?.recentActivities || [];
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-6 sm:space-y-8 font-sans">
       {/* Command Center Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 p-6 md:p-8 rounded-3xl text-white border border-zinc-800 shadow-xl relative overflow-hidden">
-        <div className="relative z-10 space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30 uppercase tracking-wider mb-1">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{t('dashboard.commandCenter', 'AI BUSINESS COMMAND CENTER')}</span>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl text-white border border-zinc-800 shadow-xl relative overflow-hidden">
+        <div className="relative z-10 space-y-1.5 min-w-0">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] sm:text-xs font-mono font-bold border border-emerald-500/30 uppercase tracking-wider mb-0.5">
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{t('dashboard.commandCenter', 'AI BUSINESS COMMAND CENTER')}</span>
           </div>
-          <h1 className="text-2xl md:text-4xl font-display font-extrabold tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-display font-extrabold tracking-tight">
             Welcome back, {session.userName}
           </h1>
-          <p className="text-xs md:text-sm text-zinc-400 font-sans">
+          <p className="text-xs sm:text-sm text-zinc-400 font-sans break-all sm:break-normal">
             {t('nav.accountContext', 'Connected Account')}: <span className="text-white font-mono font-bold">{session.userEmail}</span> · {t('nav.activeRole', 'Role')}: <span className="text-emerald-400 font-mono font-bold">{session.role}</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-3 relative z-10">
+        <div className="flex items-center gap-3 relative z-10 w-full sm:w-auto">
           <button
             onClick={() => (window.location.href = '/dashboard/ai')}
-            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 active:scale-95"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 shrink-0" />
             <span>{t('dashboard.aiAssistant', 'Ask Saarthi AI')}</span>
           </button>
         </div>
       </div>
 
       {/* QUICK ACTIONS BAR */}
-      <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider">{t('dashboard.quickActions', 'Quick Actions')}</span>
-          <span className="text-[10px] text-zinc-400 font-mono">Real-time DB Execution</span>
+      <div className="bg-white dark:bg-zinc-900 p-3 sm:p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-1">
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider">{t('dashboard.quickActions', 'Quick Actions')}</span>
+          <span className="text-[9px] sm:text-[10px] text-zinc-400 font-mono">Real-time DB Execution</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           <button
             onClick={() => setActiveModal('customer')}
-            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
+            className="p-2.5 sm:p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('dashboard.addCustomer', 'Add Customer')}</p>
-            <p className="text-[10px] text-zinc-400">Save to Neon DB</p>
+            <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1 sm:mb-1.5" />
+            <p className="text-[11px] sm:text-xs font-bold text-zinc-900 dark:text-white truncate">{t('dashboard.addCustomer', 'Add Customer')}</p>
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 truncate">Save to Neon DB</p>
           </button>
           <button
             onClick={() => setActiveModal('booking')}
-            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
+            className="p-2.5 sm:p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <Calendar className="w-4 h-4 text-teal-600 dark:text-teal-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('dashboard.newBooking', 'Schedule Appointment')}</p>
-            <p className="text-[10px] text-zinc-400">Add to roster</p>
+            <Calendar className="w-4 h-4 text-teal-600 dark:text-teal-400 mb-1 sm:mb-1.5" />
+            <p className="text-[11px] sm:text-xs font-bold text-zinc-900 dark:text-white truncate">{t('dashboard.newBooking', 'Schedule Appointment')}</p>
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 truncate">Add to roster</p>
           </button>
           <button
             onClick={() => setActiveModal('campaign')}
-            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
+            className="p-2.5 sm:p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <Megaphone className="w-4 h-4 text-amber-600 dark:text-amber-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('dashboard.launchCampaign', 'Dispatch Campaign')}</p>
-            <p className="text-[10px] text-zinc-400">Broadcast offer</p>
+            <Megaphone className="w-4 h-4 text-amber-600 dark:text-amber-400 mb-1 sm:mb-1.5" />
+            <p className="text-[11px] sm:text-xs font-bold text-zinc-900 dark:text-white truncate">{t('dashboard.launchCampaign', 'Dispatch Campaign')}</p>
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 truncate">Broadcast offer</p>
           </button>
           <button
             onClick={() => (window.location.href = '/dashboard/ai')}
-            className="p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
+            className="p-2.5 sm:p-3 bg-zinc-50 dark:bg-zinc-800/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-500/50 rounded-xl text-left transition-all group"
           >
-            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1.5" />
-            <p className="text-xs font-bold text-zinc-900 dark:text-white">{t('nav.aiWorkspace', 'AI Workspace')}</p>
-            <p className="text-[10px] text-zinc-400">Persisted history</p>
+            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mb-1 sm:mb-1.5" />
+            <p className="text-[11px] sm:text-xs font-bold text-zinc-900 dark:text-white truncate">{t('nav.aiWorkspace', 'AI Workspace')}</p>
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 truncate">Persisted history</p>
           </button>
         </div>
       </div>
 
       {/* METRICS STATS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-6">
+        <div className="bg-white dark:bg-zinc-900 p-3.5 sm:p-5 md:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-1 sm:space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.activeCustomers', 'Total Customers')}</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
-              <Users className="w-4 h-4" />
+            <span className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider truncate">{t('dashboard.activeCustomers', 'Total Customers')}</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-500/10 text-emerald-500 shrink-0">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+          <div className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-zinc-900 dark:text-white">
             {totalCustomers}
           </div>
-          <p className="text-[10px] text-zinc-400 font-mono">Neon PostgreSQL record count</p>
+          <p className="text-[9px] sm:text-[10px] text-zinc-400 font-mono truncate">Neon PostgreSQL count</p>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+        <div className="bg-white dark:bg-zinc-900 p-3.5 sm:p-5 md:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-1 sm:space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.todaysPriorities', 'Active Tasks')}</span>
-            <div className="p-2 rounded-xl bg-teal-500/10 text-teal-500">
-              <CheckSquare className="w-4 h-4" />
+            <span className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider truncate">{t('dashboard.todaysPriorities', 'Active Tasks')}</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-teal-500/10 text-teal-500 shrink-0">
+              <CheckSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+          <div className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-zinc-900 dark:text-white">
             {activeProjects}
           </div>
-          <p className="text-[10px] text-zinc-400 font-mono">{pendingTasksCount} pending action items</p>
+          <p className="text-[9px] sm:text-[10px] text-zinc-400 font-mono truncate">{pendingTasksCount} pending items</p>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+        <div className="bg-white dark:bg-zinc-900 p-3.5 sm:p-5 md:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-1 sm:space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.totalBookings', 'Appointments')}</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
-              <Calendar className="w-4 h-4" />
+            <span className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider truncate">{t('dashboard.totalBookings', 'Appointments')}</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-500/10 text-emerald-500 shrink-0">
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+          <div className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-zinc-900 dark:text-white">
             {todayAppointmentsCount}
           </div>
-          <p className="text-[10px] text-zinc-400 font-mono">Scheduled in database roster</p>
+          <p className="text-[9px] sm:text-[10px] text-zinc-400 font-mono truncate">Scheduled in roster</p>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-2">
+        <div className="bg-white dark:bg-zinc-900 p-3.5 sm:p-5 md:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-1 sm:space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{t('dashboard.aiWorkflows', 'AI Requests')}</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
-              <Sparkles className="w-4 h-4" />
+            <span className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider truncate">{t('dashboard.aiWorkflows', 'AI Requests')}</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-amber-500/10 text-amber-500 shrink-0">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="text-3xl font-bold font-display text-zinc-900 dark:text-white">
+          <div className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-zinc-900 dark:text-white">
             {aiRequestsToday}
           </div>
-          <p className="text-[10px] text-zinc-400 font-mono">Recorded in AIUsage table</p>
+          <p className="text-[9px] sm:text-[10px] text-zinc-400 font-mono truncate">AIUsage table log</p>
         </div>
       </div>
 
       {/* RECENT ACTIVITY & TASKS GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Activity */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">{t('dashboard.recentActivity', 'Recent Activity Log')}</h3>
-            <span className="text-[10px] font-mono text-zinc-400">Database audit stream</span>
+            <h3 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white font-display">{t('dashboard.recentActivity', 'Recent Activity Log')}</h3>
+            <span className="text-[9px] sm:text-[10px] font-mono text-zinc-400">Database audit stream</span>
           </div>
 
           {recentActivities.length === 0 ? (
             <p className="text-xs text-zinc-400 py-6 text-center">{t('dashboard.noActivityYet', 'No data available yet.')}</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               {recentActivities.map((act: any) => (
-                <div key={act.id} className="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 text-xs">
+                <div key={act.id} className="flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 text-xs">
                   <div className="w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                     {act.role === 'user' ? 'U' : 'स'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-zinc-900 dark:text-white">{act.title}</p>
-                    <p className="text-zinc-500 dark:text-zinc-400 text-[11px] truncate">{act.description}</p>
+                    <p className="font-bold text-zinc-900 dark:text-white truncate">{act.title}</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-[11px] line-clamp-2">{act.description}</p>
                   </div>
-                  <span className="text-[10px] font-mono text-zinc-400 shrink-0">{act.time}</span>
+                  <span className="text-[9px] sm:text-[10px] font-mono text-zinc-400 shrink-0">{act.time}</span>
                 </div>
               ))}
             </div>
@@ -327,10 +327,10 @@ export default function BusinessDashboard() {
         </div>
 
         {/* Tasks List */}
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-white font-display">{t('dashboard.todaysPriorities', 'Active Operations & Tasks')}</h3>
-            <span className="text-[10px] font-mono text-zinc-400">{tasks.length} Total</span>
+            <h3 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white font-display">{t('dashboard.todaysPriorities', 'Active Operations & Tasks')}</h3>
+            <span className="text-[9px] sm:text-[10px] font-mono text-zinc-400">{tasks.length} Total</span>
           </div>
 
           {tasks.length === 0 ? (
@@ -341,15 +341,15 @@ export default function BusinessDashboard() {
                 <div
                   key={t.id}
                   onClick={() => handleToggleTask(t)}
-                  className="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer transition-colors"
+                  className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 className={`w-4 h-4 ${t.status === 'DONE' ? 'text-emerald-500' : 'text-zinc-400'}`} />
-                    <span className={`font-medium ${t.status === 'DONE' ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+                    <CheckCircle2 className={`w-4 h-4 shrink-0 ${t.status === 'DONE' ? 'text-emerald-500' : 'text-zinc-400'}`} />
+                    <span className={`font-medium truncate ${t.status === 'DONE' ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
                       {t.title}
                     </span>
                   </div>
-                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 uppercase">
+                  <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 uppercase shrink-0">
                     {t.priority}
                   </span>
                 </div>
@@ -361,11 +361,11 @@ export default function BusinessDashboard() {
 
       {/* ─── MODALS ───────────────────────────────────────────────────────── */}
       {activeModal === 'customer' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4 text-xs shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{t('dashboard.createCustomerModalTitle', 'Add New Customer')}</h3>
-              <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
+              <button onClick={() => setActiveModal(null)} className="p-1 text-zinc-400 hover:text-white rounded-lg"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleCreateCustomer} className="space-y-3">
               <div>
@@ -398,9 +398,9 @@ export default function BusinessDashboard() {
                   className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500"
                 />
               </div>
-              <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button type="button" onClick={() => setActiveModal(null)} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
+                <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center justify-center gap-1.5">
                   {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   <span>{isSubmitting ? t('dashboard.saving', 'Saving...') : t('dashboard.createCustomer', 'Save to Neon DB')}</span>
                 </button>
@@ -411,11 +411,11 @@ export default function BusinessDashboard() {
       )}
 
       {activeModal === 'booking' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4 text-xs shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{t('dashboard.newBookingModalTitle', 'Schedule Appointment')}</h3>
-              <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
+              <button onClick={() => setActiveModal(null)} className="p-1 text-zinc-400 hover:text-white rounded-lg"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleCreateBooking} className="space-y-3">
               <div>
@@ -440,9 +440,9 @@ export default function BusinessDashboard() {
                   ))}
                 </select>
               </div>
-              <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button type="button" onClick={() => setActiveModal(null)} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
+                <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center justify-center gap-1.5">
                   {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   <span>{isSubmitting ? t('dashboard.saving', 'Saving...') : t('dashboard.confirmBooking', 'Confirm Appointment')}</span>
                 </button>
@@ -453,11 +453,11 @@ export default function BusinessDashboard() {
       )}
 
       {activeModal === 'campaign' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 text-xs shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4 text-xs shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{t('dashboard.launchCampaignModalTitle', 'Dispatch Marketing Campaign')}</h3>
-              <button onClick={() => setActiveModal(null)} className="text-zinc-400 hover:text-white"><X className="w-4 h-4" /></button>
+              <button onClick={() => setActiveModal(null)} className="p-1 text-zinc-400 hover:text-white rounded-lg"><X className="w-4 h-4" /></button>
             </div>
             <form onSubmit={handleCreateCampaign} className="space-y-3">
               <div>
@@ -479,9 +479,9 @@ export default function BusinessDashboard() {
                   className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-2.5 focus:outline-none focus:border-emerald-500 h-24 resize-none"
                 />
               </div>
-              <div className="pt-2 flex justify-end gap-2">
-                <button type="button" onClick={() => setActiveModal(null)} className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center gap-1.5">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button type="button" onClick={() => setActiveModal(null)} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold">{t('dashboard.cancel', 'Cancel')}</button>
+                <button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-emerald-600 text-white font-bold disabled:opacity-50 flex items-center justify-center gap-1.5">
                   {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   <span>{isSubmitting ? t('dashboard.saving', 'Sending...') : t('dashboard.sendCampaign', 'Dispatch Broadcast')}</span>
                 </button>

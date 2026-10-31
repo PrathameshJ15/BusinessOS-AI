@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { signOut } from 'next-auth/react';
 import { useApp } from '../../../context/AppContext';
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n';
 import {
@@ -20,6 +21,7 @@ import {
   ExternalLink,
   Copy,
   Check,
+  LogOut,
 } from 'lucide-react';
 import { ROLE_PERMISSIONS } from '@businessos/auth';
 import { buildWhatsAppClickToChat, validateWhatsAppPhone } from '@/lib/whatsapp';
@@ -259,7 +261,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Tabs Bar */}
-      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-wrap gap-2">
+      <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar max-w-full">
         {[
           { id: 'account', label: t('settings.tabAccount', 'User Account & AI Usage'), icon: User },
           { id: 'profile', label: t('settings.tabProfile', 'Business Profile'), icon: Building2 },
@@ -272,7 +274,7 @@ export default function SettingsPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+              className={`shrink-0 flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
                 activeTab === tab.id
                   ? 'bg-zinc-900 dark:bg-zinc-800 text-white shadow-sm'
                   : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
@@ -289,7 +291,7 @@ export default function SettingsPage() {
       {activeTab === 'account' && (
         <div className="space-y-6 max-w-3xl">
           {/* Language & Localization Settings */}
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
             <div className="pb-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
@@ -343,7 +345,7 @@ export default function SettingsPage() {
           </div>
 
           {/* User Profile Form */}
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
             <div className="pb-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-white">User Profile Settings</h3>
@@ -393,11 +395,24 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end">
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-zinc-100 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    document.cookie = 'saarthi_user_email=; path=/; max-age=0; SameSite=Lax';
+                    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+                    signOut({ callbackUrl: '/login', redirect: true });
+                  }}
+                  className="w-full sm:w-auto text-xs font-semibold px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-300 dark:hover:border-rose-900/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out of BusinessOS</span>
+                </button>
+
                 <button
                   type="submit"
                   disabled={isSavingUser}
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+                  className="w-full sm:w-auto justify-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
                 >
                   {isSavingUser ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   <span>{isSavingUser ? 'Saving User Settings...' : 'Save User Settings to Neon'}</span>
@@ -407,7 +422,7 @@ export default function SettingsPage() {
           </div>
 
           {/* AI Usage Tracker */}
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
             <div className="pb-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
@@ -451,7 +466,7 @@ export default function SettingsPage() {
 
       {/* Business Profile Tab */}
       {activeTab === 'profile' && (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm max-w-3xl space-y-6">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm max-w-3xl space-y-6">
           <div className="pb-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Business Context & Profile Settings</h3>
@@ -563,7 +578,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={isSavingBiz}
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+                    className="w-full sm:w-auto justify-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
                   >
                     {isSavingBiz ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     <span>{isSavingBiz ? 'Saving Business Settings...' : 'Save Business Settings to Neon'}</span>
@@ -582,7 +597,7 @@ export default function SettingsPage() {
 
       {/* RBAC Role Permissions Tab */}
       {activeTab === 'rbac' && (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
           <div className="pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Multi-Tenant RBAC Permissions Matrix</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Security authorization controls enforced across API routes and AI tool actions.</p>
@@ -613,7 +628,7 @@ export default function SettingsPage() {
 
       {/* Integrations Tab */}
       {activeTab === 'integrations' && (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4">
           <div className="pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Connected Third-Party Integrations</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">API adapters running in production and development sandbox mode.</p>
@@ -621,7 +636,7 @@ export default function SettingsPage() {
 
           <div className="space-y-3">
             {integrations.map((int: any) => (
-              <div key={int.id || int.provider} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
+              <div key={int.id || int.provider} className="p-3.5 sm:p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white font-bold text-xs flex items-center justify-center">
                     {int.provider.charAt(0)}
@@ -635,7 +650,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => toggleIntegration(int.provider)}
-                  className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-colors ${
+                  className={`w-full sm:w-auto text-center px-3 py-1.5 sm:py-1 rounded-full text-[10px] font-bold border transition-colors ${
                     int.status === 'CONNECTED'
                       ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:opacity-80'
                       : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700 hover:opacity-80'
@@ -791,7 +806,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={isSavingWa}
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+                    className="w-full sm:w-auto justify-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
                   >
                     {isSavingWa ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                     <span>{isSavingWa ? 'Saving WhatsApp Settings...' : 'Save WhatsApp Settings to Neon'}</span>
@@ -810,7 +825,7 @@ export default function SettingsPage() {
 
       {/* Billing & Invoices Tab */}
       {activeTab === 'billing' && (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-zinc-900 p-4 sm:p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Subscription & Invoices</h3>

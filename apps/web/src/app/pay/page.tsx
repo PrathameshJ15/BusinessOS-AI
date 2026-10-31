@@ -235,16 +235,16 @@ function PayCheckoutContent() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-3 sm:p-4 selection:bg-emerald-500/30">
       {/* Background Ambience */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[550px] h-[550px] bg-emerald-500/10 rounded-full blur-[140px]" />
         <div className="absolute -bottom-20 left-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl">
+      <div className="relative z-10 w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden backdrop-blur-xl">
         {/* Gateway Brand Header */}
-        <div className="p-6 bg-gradient-to-r from-emerald-950/50 via-zinc-900 to-zinc-900 border-b border-zinc-800">
+        <div className="p-4 sm:p-6 bg-gradient-to-r from-emerald-950/50 via-zinc-900 to-zinc-900 border-b border-zinc-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm shadow-inner">
@@ -336,7 +336,7 @@ function PayCheckoutContent() {
           </div>
         ) : (
           /* Payment Form */
-          <form onSubmit={handlePay} className="p-6 space-y-5">
+          <form onSubmit={handlePay} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
             {/* Order Summary Pill */}
             <div className="p-3 bg-zinc-950/70 rounded-xl border border-zinc-800 flex justify-between items-center text-xs">
               <div>
@@ -353,7 +353,7 @@ function PayCheckoutContent() {
               <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
                 Select Payment Method
               </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('card')}
@@ -416,7 +416,7 @@ function PayCheckoutContent() {
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
                     ⚡ Quick Test Cards
                   </span>
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1 justify-end">
                     {TEST_CARDS.map((preset) => (
                       <button
                         key={preset.label}

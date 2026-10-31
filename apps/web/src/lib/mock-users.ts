@@ -98,3 +98,39 @@ export const MOCK_AUTH_USERS: MockAuthUser[] = [
  * Filter primary display users for UI cards (excluding aliases)
  */
 export const PRIMARY_MOCK_USERS = MOCK_AUTH_USERS.slice(0, 4);
+
+export function registerMockUser(newUser: {
+  username?: string;
+  email: string;
+  password: string;
+  name: string;
+  role?: 'OWNER' | 'MANAGER' | 'STAFF';
+}): MockAuthUser {
+  const normalizedEmail = newUser.email.toLowerCase().trim();
+  const existing = MOCK_AUTH_USERS.find(
+    (u) => u.email.toLowerCase() === normalizedEmail || (newUser.username && u.username.toLowerCase() === newUser.username.toLowerCase().trim())
+  );
+  if (existing) {
+    existing.name = newUser.name;
+    existing.password = newUser.password;
+    return existing;
+  }
+
+  const id = `usr-reg-${Date.now()}`;
+  const user: MockAuthUser = {
+    id,
+    username: newUser.username?.trim() || normalizedEmail.split('@')[0],
+    email: normalizedEmail,
+    password: newUser.password,
+    name: newUser.name.trim(),
+    role: newUser.role || 'OWNER',
+    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    badge: 'Workspace Owner',
+    roleBadgeColor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    description: 'Registered Business Workspace Owner',
+    permissionsSummary: 'All Permissions • Full Workspace Control',
+  };
+
+  MOCK_AUTH_USERS.push(user);
+  return user;
+}

@@ -16,7 +16,7 @@ export const ProductPreview: React.FC = () => {
   ];
 
   return (
-    <section id="product" className="py-24 px-6">
+    <section id="product" className="py-16 sm:py-24 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
           <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
@@ -29,7 +29,7 @@ export const ProductPreview: React.FC = () => {
             तुमचा व्यवसाय, अधिक स्मार्ट.
           </p>
         </div>
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 sm:pb-0 sm:flex-wrap sm:justify-center mb-8 max-w-full">
           {tabs.map((t) => {
             const Icon = t.icon;
             const isSelected = activeTab === t.id;
@@ -37,7 +37,7 @@ export const ProductPreview: React.FC = () => {
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 ${
+                className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 ${
                   isSelected
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-700'
@@ -69,7 +69,7 @@ export const ProductPreview: React.FC = () => {
             <span className="text-[10px] font-mono text-zinc-400">Preview</span>
           </div>
 
-          <div className="p-6 sm:p-8 min-h-[400px] bg-zinc-50/50 dark:bg-[#09090b]/80">
+          <div className="p-4 sm:p-6 md:p-8 min-h-[400px] bg-zinc-50/50 dark:bg-[#09090b]/80">
             <AnimatePresence mode="wait">
               {activeTab === 'dashboard' && (
                 <motion.div
